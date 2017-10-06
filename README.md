@@ -1,5 +1,4 @@
-[![CircleCI](https://circleci.com/gh/DCORP-BV/tokens.svg?style=svg&circle-token=5d7155f6a4ce7248d345dbe9200f1abed868a8e9)](https://circleci.com/gh/DCORP-BV/tokens)
-[![Build Status](https://circleci.com/gh/DCORP-BV/tokens.svg?style=shield&circle-token=5d7155f6a4ce7248d345dbe9200f1abed868a8e9)](https://circleci.com/gh/DCORP-BV/dcorp/)
+[![CircleCI](https://circleci.com/gh/DCORP-BV/tokens.svg?style=shield&circle-token=5d7155f6a4ce7248d345dbe9200f1abed868a8e9)](https://circleci.com/gh/DCORP-BV/tokens)
 [![JavaScript Style
 Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
