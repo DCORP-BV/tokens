@@ -1,0 +1,7 @@
+/build
+/BuildProcessTemplates
+/ps
+/node_modules
+npm-debug.log
+/coverage
+coverage.json

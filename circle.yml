@@ -1,0 +1,20 @@
+machine:
+  services:
+    - docker
+  node:
+    version: 7.4.0
+
+test:
+  pre:
+    - npm run compile
+  override:
+    - npm run testrpc_boot # boot the testrpc server using docker
+    - npm run test
+  post:
+    - npm run linter
+    - npm run linter-tests
+    - npm run coverage
+
+general:
+  artifacts:
+    - ./coverage
