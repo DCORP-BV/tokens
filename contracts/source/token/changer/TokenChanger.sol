@@ -23,6 +23,9 @@ contract TokenChanger is ITokenChanger {
     uint internal precision; // Precision 
 
 
+    /**
+     *
+     */
     function TokenChanger(address _token1, address _token2, uint _rate, uint _fee, uint _precision) {
         token1 = IManagedToken(_token1);
         token2 = IManagedToken(_token2);

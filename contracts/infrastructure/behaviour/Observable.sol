@@ -28,6 +28,7 @@ contract Observable is IObservable {
 
 
     function registerObserver(address _observer) {
+        require(canRegisterObserver(_observer));
         if (!isObserver(_observer)) {
             observers[_observer] = observerIndex.push(_observer) - 1;
         }
@@ -35,6 +36,7 @@ contract Observable is IObservable {
 
 
     function unregisterObserver(address _observer) {
+        require(canUnregisterObserver(_observer));
         if (isObserver(_observer)) {
             uint indexToDelete = observers[_observer];
             observerIndex[indexToDelete] = observerIndex[observerIndex.length - 1];
@@ -42,4 +44,9 @@ contract Observable is IObservable {
             observerIndex.length--;
         }
     }
+
+
+    function canRegisterObserver(address _observer) constant returns (bool);
+
+    function canUnregisterObserver(address _observer) constant returns (bool);
 }

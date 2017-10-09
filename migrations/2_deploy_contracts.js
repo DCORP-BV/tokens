@@ -18,13 +18,13 @@ module.exports = function(deployer, network, accounts) {
   var drpsInstance
 
   var preDeploy = Promise.resolve();
-  if (network == 'test' || network == 'develop') {
-    preDeploy = function (deployer, network, accounts) {
+  if (network == 'test' || network == 'develop' || network == 'development') {
+    preDeploy = function () {
       return deployTestArtifacts(deployer, network, accounts)
     }
   }
 
-  return preDeploy(deployer, network, accounts).then(function (){
+  return preDeploy().then(function (){
     return deployer.deploy(Whitelist)
   }) 
   .then(function () {
