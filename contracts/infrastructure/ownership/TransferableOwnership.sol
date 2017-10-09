@@ -3,6 +3,15 @@ pragma solidity ^0.4.15;
 import "./ITransferableOwnership.sol";
 import "./Ownership.sol";
 
+/**
+ * @title Transferable ownership
+ *
+ * Enhances ownership by allowing the current owner to 
+ * transfer ownership to a new owner
+ *
+ * #created 01/10/2017
+ * #author Frank Bonnet
+ */
 contract TransferableOwnership is ITransferableOwnership, Ownership {
 
 

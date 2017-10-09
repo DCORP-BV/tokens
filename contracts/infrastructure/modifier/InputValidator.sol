@@ -1,5 +1,13 @@
 pragma solidity ^0.4.15;
 
+/**
+ * @title Input validation
+ *
+ * - Validates argument length
+ *
+ * #created 01/10/2017
+ * #author Frank Bonnet
+ */
 contract InputValidator {
 
 

@@ -1,5 +1,11 @@
 pragma solidity ^0.4.15;
 
+/**
+ * @title Owned modifier
+ *
+ * #created 01/10/2017
+ * #author Frank Bonnet
+ */
 contract Owned {
 
     // The address of the account that is the current owner 

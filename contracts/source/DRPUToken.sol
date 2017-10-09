@@ -26,11 +26,23 @@ contract DRPUToken is ManagedToken, Observable, ITokenRetreiver {
     function DRPUToken() ManagedToken("DRP Utility", "DRPU", false) {}
 
 
+    /**
+     * Returns whether sender is allowed to register `_observer`
+     *
+     * @param _observer The address to register as an observer
+     * @return Whether the sender is allowed or not
+     */
     function canRegisterObserver(address _observer) public constant returns (bool) {
         return _observer != address(this) && msg.sender == getOwner();
     }
 
 
+    /**
+     * Returns whether sender is allowed to unregister `_observer`
+     *
+     * @param _observer The address to unregister as an observer
+     * @return Whether the sender is allowed or not
+     */
     function canUnregisterObserver(address _observer) public constant returns (bool) {
         return msg.sender == _observer || msg.sender == getOwner();
     }

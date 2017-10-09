@@ -1,5 +1,13 @@
 pragma solidity ^0.4.15;
 
+/**
+ * @title Ownership interface
+ *
+ * Perminent ownership
+ *
+ * #created 01/10/2017
+ * #author Frank Bonnet
+ */
 contract IOwnership {
 
     /**

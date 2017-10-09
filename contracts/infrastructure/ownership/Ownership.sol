@@ -3,6 +3,14 @@ pragma solidity ^0.4.15;
 import "./IOwnership.sol";
 import "../modifier/Owned.sol";
 
+/**
+ * @title Ownership
+ *
+ * Perminent ownership
+ *
+ * #created 01/10/2017
+ * #author Frank Bonnet
+ */
 contract Ownership is IOwnership, Owned {
 
 
