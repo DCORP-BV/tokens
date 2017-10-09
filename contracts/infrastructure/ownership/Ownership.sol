@@ -1,7 +1,6 @@
 pragma solidity ^0.4.15;
 
 import "./IOwnership.sol";
-import "../modifier/Owned.sol";
 
 /**
  * @title Ownership
@@ -11,7 +10,27 @@ import "../modifier/Owned.sol";
  * #created 01/10/2017
  * #author Frank Bonnet
  */
-contract Ownership is IOwnership, Owned {
+contract Ownership is IOwnership {
+
+    // Owner
+    address internal owner;
+
+
+    /**
+     * The publiser is the inital owner
+     */
+    function Ownership() {
+        owner = msg.sender;
+    }
+
+
+    /**
+     * Access is restricted to the current owner
+     */
+    modifier only_owner() {
+        require(msg.sender == owner);
+        _;
+    }
 
 
     /**

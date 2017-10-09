@@ -3,7 +3,6 @@ pragma solidity ^0.4.15;
 import "./token/changer/TokenChanger.sol";
 import "./token/observer/TokenObserver.sol";
 import "./token/retreiver/ITokenRetreiver.sol";
-import "../infrastructure/behaviour/IObservable.sol";
 import "../infrastructure/ownership/TransferableOwnership.sol";
 
 /**
@@ -33,10 +32,7 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
      * @param _drps Ref to the DRPS token smart-contract https://www.dcorp.it/drps
      * @param _drpu Ref to the DRPU token smart-contract https://www.dcorp.it/drpu
      */
-    function DRPTokenChanger(address _drps, address _drpu) TokenChanger(_drps, _drpu, 20000, 100, 4) {
-        IObservable(_drps).registerObserver(this);
-        IObservable(_drpu).registerObserver(this);
-    }
+    function DRPTokenChanger(address _drps, address _drpu) TokenChanger(_drps, _drpu, 20000, 100, 4) {}
 
 
     /**
@@ -73,7 +69,7 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
 
 
     /**
-     * Event handler that initializes the token swap
+     * Event handler that initializes the token conversion
      * 
      * Called by `_token` when a token amount is received on 
      * the address of this token changer
@@ -86,7 +82,32 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
         require(_token == msg.sender);
         require(_token == address(token1) || _token == address(token2));
 
-        // Swap tokens
-        swap(_token, _from, _value);
+        // Convert tokens
+        convert(_token, _from, _value);
+    }
+
+
+    /**
+     * Failsafe mechanism
+     * 
+     * Allows the owner to retreive tokens from the contract that 
+     * might have been send there by accident
+     *
+     * @param _tokenContract The address of ERC20 compatible token
+     */
+    function retreiveTokens(address _tokenContract) public only_owner {
+        IToken tokenInstance = IToken(_tokenContract);
+        uint tokenBalance = tokenInstance.balanceOf(this);
+        if (tokenBalance > 0) {
+            tokenInstance.transfer(msg.sender, tokenBalance);
+        }
+    }
+
+
+    /**
+     * Prevents the accidental sending of ether
+     */
+    function () payable {
+        revert();
     }
 }

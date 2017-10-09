@@ -61,32 +61,6 @@ contract TestDRPUTokenObserver {
     Assert.isTrue(hasThrown, "Should have thrown");
   }
 
-  function test_Observer_Is_Notified() {
-
-    // Arrange
-    uint amount = 25;
-    address sender = this;
-
-    MockTokenObserver observer = new MockTokenObserver();
-    DRPUToken token = new DRPUToken();
-    
-    token.issue(sender, amount);
-    token.registerObserver(observer);
-
-    uint recordCountBefore = observer.getRecordCount();
-
-    // Act
-    token.transfer(observer, amount);
-    uint recordCountAfter = observer.getRecordCount();
-    var (tokenRecord, senderRecord, valueRecord) = observer.getRecordAt(recordCountAfter - 1);
-
-    // Assert
-    Assert.equal(recordCountBefore + 1, recordCountAfter, "Observer should have been notified");
-    Assert.equal(tokenRecord, token, "Token record does not match");
-    Assert.equal(senderRecord, sender, "Sender record does not match");
-    Assert.equal(valueRecord, amount, "Value record does not match");
-  }
-
   function test_Owner_Can_Remove_Observer() {
 
     // Arrange
@@ -109,10 +83,9 @@ contract TestDRPUTokenObserver {
 
     // Arrange
     address observer = this;
-    address owner = accounts.get(1);
     DRPUToken token = new DRPUToken();
     token.registerObserver(observer);
-    token.transferOwnership(owner);
+    token.removeOwner(observer);
 
     bool isObserverBefore = token.isObserver(observer);
 
@@ -144,5 +117,54 @@ contract TestDRPUTokenObserver {
     Assert.isTrue(isObserverBefore, "Should have been registered as an observer before registration");
     Assert.isTrue(isObserverAfter, "Should still be registered as an observer after registration");
     Assert.isTrue(hasThrown, "Should have thrown");
+  }
+
+  function test_Observer_Is_Notified() {
+
+    // Arrange
+    uint amount = 25;
+    address sender = this;
+
+    MockTokenObserver observer = new MockTokenObserver();
+    DRPUToken token = new DRPUToken();
+    
+    token.issue(sender, amount);
+    token.registerObserver(observer);
+
+    uint recordCountBefore = observer.getRecordCount();
+
+    // Act
+    token.transfer(observer, amount);
+    uint recordCountAfter = observer.getRecordCount();
+    var (tokenRecord, senderRecord, valueRecord) = observer.getRecordAt(recordCountAfter - 1);
+
+    // Assert
+    Assert.equal(recordCountBefore + 1, recordCountAfter, "Observer should have been notified");
+    Assert.equal(tokenRecord, token, "Token record does not match");
+    Assert.equal(senderRecord, sender, "Sender record does not match");
+    Assert.equal(valueRecord, amount, "Value record does not match");
+  }
+
+  function test_Removed_Observer_Is_Not_Notified() {
+
+    // Arrange
+    uint amount = 25;
+    address sender = this;
+
+    MockTokenObserver observer = new MockTokenObserver();
+    DRPUToken token = new DRPUToken();
+
+    token.issue(sender, amount);
+    token.registerObserver(observer);
+    token.unregisterObserver(observer);
+
+    uint recordCountBefore = observer.getRecordCount();
+
+    // Act
+    token.transfer(observer, amount);
+    uint recordCountAfter = observer.getRecordCount();
+
+    // Assert
+    Assert.equal(recordCountBefore, recordCountAfter, "Observer should not have been notified");
   }
 }

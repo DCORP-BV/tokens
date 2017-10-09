@@ -73,8 +73,9 @@ contract Observable is IObservable {
         require(canUnregisterObserver(_observer));
         if (isObserver(_observer)) {
             uint indexToDelete = observers[_observer];
-            observerIndex[indexToDelete] = observerIndex[observerIndex.length - 1];
-            observers[_observer] = indexToDelete;
+            address keyToMove = observerIndex[observerIndex.length - 1];
+            observerIndex[indexToDelete] = keyToMove;
+            observers[keyToMove] = indexToDelete;
             observerIndex.length--;
         }
     }
@@ -87,7 +88,7 @@ contract Observable is IObservable {
      * @param _observer The address to register as an observer
      * @return Whether the sender is allowed or not
      */
-    function canRegisterObserver(address _observer) constant returns (bool);
+    function canRegisterObserver(address _observer) internal constant returns (bool);
 
 
     /**
@@ -97,5 +98,5 @@ contract Observable is IObservable {
      * @param _observer The address to unregister as an observer
      * @return Whether the sender is allowed or not
      */
-    function canUnregisterObserver(address _observer) constant returns (bool);
+    function canUnregisterObserver(address _observer) internal constant returns (bool);
 }

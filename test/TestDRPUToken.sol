@@ -77,55 +77,6 @@ contract TestDRPUToken {
       locked, "The contract should not be in the locked state");
   }
 
-  function test_Initial_Owner_Is_Deploying_Account() {
-    
-    // Arange
-    DRPUToken token = DRPUToken(DeployedAddresses.DRPUToken());
-
-    // Act 
-    address actualOwner = token.getOwner();
-    address expectedOwner = tx.origin;
-
-    // Assert
-    Assert.equal(
-      actualOwner, expectedOwner, "The deploying account is not the owner of the token contract");
-  }
-
-  function test_Owner_Can_Transfer_Ownership() {
-
-    // Arrange
-    DRPUToken token = new DRPUToken();
-    address ownerBefore = token.getOwner();
-    address newOwner = accounts.get(0);
-
-    // Act
-    token.transferOwnership(newOwner);
-    address ownerAfter = token.getOwner();
-
-    // Assert
-    Assert.notEqual(ownerBefore, newOwner, "The new owner cannot be the current owner");
-    Assert.equal(newOwner, ownerAfter, "The ownership should have changed");
-  }
-
-  function test_Non_Owner_Cannot_Transfer_Ownership() {
-    
-     // Arrange
-    DRPUToken token = new DRPUToken();
-    CallProxy proxy = CallProxy(callProxyFactory.create(token));
-    address ownerBefore = token.getOwner();
-    address newOwner = accounts.get(0);
-
-    // Act
-    DRPUToken(proxy).transferOwnership(newOwner); // msg.sender will be the proxy
-    bool hasThrown = proxy.throws();
-    address ownerAfter = token.getOwner();
-
-    // Assert
-    Assert.notEqual(ownerBefore, newOwner, "The new owner cannot be the current owner");
-    Assert.equal(ownerBefore, ownerAfter, "The ownership should not have changed");
-    Assert.isTrue(hasThrown, "Should have thrown");
-  }
-
   function test_Owner_Can_Lock() {
 
     // Arrange

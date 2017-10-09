@@ -61,6 +61,65 @@ contract TestDRPSTokenObserver {
     Assert.isTrue(hasThrown, "Should have thrown");
   }
 
+  function test_Owner_Can_Remove_Observer() {
+
+    // Arrange
+    address observer = this;
+    DRPSToken token = new DRPSToken();
+    token.registerObserver(observer);
+
+    bool isObserverBefore = token.isObserver(observer);
+
+    // Act
+    token.unregisterObserver(observer);
+    bool isObserverAfter = token.isObserver(observer);
+
+    // Assert
+    Assert.isTrue(isObserverBefore, "Should have been registered as an observer before registration");
+    Assert.isFalse(isObserverAfter, "Should not have been registered as an observer after registration");
+  }
+
+  function test_Observer_Can_Remove_Self() {
+
+    // Arrange
+    address observer = this;
+    DRPSToken token = new DRPSToken();
+    token.registerObserver(observer);
+    token.removeOwner(observer);
+
+    bool isObserverBefore = token.isObserver(observer);
+
+    // Act
+    token.unregisterObserver(observer);
+    bool isObserverAfter = token.isObserver(observer);
+
+    // Assert
+    Assert.isTrue(isObserverBefore, "Should have been registered as an observer before registration");
+    Assert.isFalse(isObserverAfter, "Should not have been registered as an observer after registration");
+  }
+
+  function test_Non_Owner_Cannot_Remove_Observer() {
+
+    // Arrange
+    address observer = this;
+    
+    DRPSToken token = new DRPSToken();
+    CallProxy proxy = CallProxy(callProxyFactory.create(token));
+    token.registerObserver(observer);
+
+    bool isObserverBefore = token.isObserver(observer);
+
+    // Act
+    DRPSToken(proxy).unregisterObserver(observer); // msg.sender will be the proxy
+    bool hasThrown = proxy.throws();
+    bool isObserverAfter = token.isObserver(observer);
+
+    // Assert
+    Assert.isTrue(isObserverBefore, "Should have been registered as an observer before registration");
+    Assert.isTrue(isObserverAfter, "Should still be registered as an observer after registration");
+    Assert.isTrue(hasThrown, "Should have thrown");
+  }
+
   function test_Observer_Is_Notified() {
 
     // Arrange
@@ -87,62 +146,26 @@ contract TestDRPSTokenObserver {
     Assert.equal(valueRecord, amount, "Value record does not match");
   }
 
-  function test_Owner_Can_Remove_Observer() {
+  function test_Removed_Observer_Is_Not_Notified() {
 
     // Arrange
-    address observer = this;
+    uint amount = 25;
+    address sender = this;
+
+    MockTokenObserver observer = new MockTokenObserver();
     DRPSToken token = new DRPSToken();
+
+    token.issue(sender, amount);
     token.registerObserver(observer);
-
-    bool isObserverBefore = token.isObserver(observer);
-
-    // Act
     token.unregisterObserver(observer);
-    bool isObserverAfter = token.isObserver(observer);
 
-    // Assert
-    Assert.isTrue(isObserverBefore, "Should have been registered as an observer before registration");
-    Assert.isFalse(isObserverAfter, "Should not have been registered as an observer after registration");
-  }
-
-  function test_Observer_Can_Remove_Self() {
-
-    // Arrange
-    address observer = this;
-    address owner = accounts.get(1);
-    DRPSToken token = new DRPSToken();
-    token.registerObserver(observer);
-    token.transferOwnership(owner);
-
-    bool isObserverBefore = token.isObserver(observer);
+    uint recordCountBefore = observer.getRecordCount();
 
     // Act
-    token.unregisterObserver(observer);
-    bool isObserverAfter = token.isObserver(observer);
+    token.transfer(observer, amount);
+    uint recordCountAfter = observer.getRecordCount();
 
     // Assert
-    Assert.isTrue(isObserverBefore, "Should have been registered as an observer before registration");
-    Assert.isFalse(isObserverAfter, "Should not have been registered as an observer after registration");
-  }
-
-  function test_Non_Owner_Cannot_Remove_Observer() {
-
-    // Arrange
-    address observer = this;
-    DRPSToken token = new DRPSToken();
-    CallProxy proxy = CallProxy(callProxyFactory.create(token));
-    token.registerObserver(observer);
-
-    bool isObserverBefore = token.isObserver(observer);
-
-    // Act
-    DRPSToken(proxy).unregisterObserver(observer); // msg.sender will be the proxy
-    bool hasThrown = proxy.throws();
-    bool isObserverAfter = token.isObserver(observer);
-
-    // Assert
-    Assert.isTrue(isObserverBefore, "Should have been registered as an observer before registration");
-    Assert.isTrue(isObserverAfter, "Should still be registered as an observer after registration");
-    Assert.isTrue(hasThrown, "Should have thrown");
+    Assert.equal(recordCountBefore, recordCountAfter, "Observer should not have been notified");
   }
 }

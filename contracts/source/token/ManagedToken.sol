@@ -2,7 +2,7 @@ pragma solidity ^0.4.15;
 
 import "./Token.sol";
 import "./IManagedToken.sol";
-import "../../infrastructure/ownership/TransferableOwnership.sol";
+import "../../infrastructure/ownership/MultiOwned.sol";
 
 /**
  * @title ManagedToken
@@ -15,7 +15,7 @@ import "../../infrastructure/ownership/TransferableOwnership.sol";
  * #created 29/09/2017
  * #author Frank Bonnet
  */
-contract ManagedToken is IManagedToken, Token, TransferableOwnership {
+contract ManagedToken is IManagedToken, Token, MultiOwned {
 
     // Token state
     bool internal locked;
@@ -26,7 +26,6 @@ contract ManagedToken is IManagedToken, Token, TransferableOwnership {
      */
     modifier only_when_unlocked() {
         require(!locked);
-
         _;
     }
 

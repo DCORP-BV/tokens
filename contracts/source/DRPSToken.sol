@@ -35,8 +35,8 @@ contract DRPSToken is ManagedToken, Observable, ITokenRetreiver {
      * @param _observer The address to register as an observer
      * @return Whether the sender is allowed or not
      */
-    function canRegisterObserver(address _observer) public constant returns (bool) {
-        return _observer != address(this) && msg.sender == getOwner();
+    function canRegisterObserver(address _observer) internal constant returns (bool) {
+        return _observer != address(this) && isOwner(msg.sender);
     }
 
 
@@ -46,8 +46,8 @@ contract DRPSToken is ManagedToken, Observable, ITokenRetreiver {
      * @param _observer The address to unregister as an observer
      * @return Whether the sender is allowed or not
      */
-    function canUnregisterObserver(address _observer) public constant returns (bool) {
-        return msg.sender == _observer || msg.sender == getOwner();
+    function canUnregisterObserver(address _observer) internal constant returns (bool) {
+        return msg.sender == _observer || isOwner(msg.sender);
     }
 
 
@@ -100,7 +100,7 @@ contract DRPSToken is ManagedToken, Observable, ITokenRetreiver {
         IToken tokenInstance = IToken(_tokenContract);
         uint tokenBalance = tokenInstance.balanceOf(this);
         if (tokenBalance > 0) {
-            tokenInstance.transfer(owner, tokenBalance);
+            tokenInstance.transfer(msg.sender, tokenBalance);
         }
     }
 
