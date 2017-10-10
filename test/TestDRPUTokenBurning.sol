@@ -70,7 +70,7 @@ contract TestDRPUTokenBurning {
     uint amount = balanceBefore + 1;
     
     // Act
-    bool hasThrown = !address(token).call(bytes4(bytes32(sha3("burn(address,uint)"))), from, amount);
+    bool hasThrown = !address(token).call(bytes4(bytes32(sha3("burn(address,uint256)"))), from, amount);
     uint balanceAfter = token.balanceOf(from);
 
     // Assert

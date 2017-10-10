@@ -82,6 +82,43 @@ contract TestDRPTokenChanger {
     Assert.equal(newPrecision, precisionAfter, "Precision should have been updated");
   }
 
+  function test_Owner_Can_Pause() {
+
+    // Arange
+    DRPSToken drpsToken = DRPSToken(DeployedAddresses.DRPSToken());
+    DRPUToken drpuToken = DRPUToken(DeployedAddresses.DRPUToken());
+    DRPTokenChanger changer = new DRPTokenChanger(drpsToken, drpuToken);
+
+    bool pausedStateBefore = changer.isPaused();
+
+    // Act
+    changer.pause();
+    bool pausedStateAfter = changer.isPaused();
+
+    // Assert
+    Assert.isFalse(pausedStateBefore, "Should not be in the paused state initially");
+    Assert.isTrue(pausedStateAfter, "Should be in the paused state after");
+  }
+
+  function test_Owner_Can_Resume() {
+
+    // Arange
+    DRPSToken drpsToken = DRPSToken(DeployedAddresses.DRPSToken());
+    DRPUToken drpuToken = DRPUToken(DeployedAddresses.DRPUToken());
+    DRPTokenChanger changer = new DRPTokenChanger(drpsToken, drpuToken);
+
+    changer.pause();
+    bool pausedStateBefore = changer.isPaused();
+
+    // Act
+    changer.resume();
+    bool pausedStateAfter = changer.isPaused();
+
+    // Assert
+    Assert.isTrue(pausedStateBefore, "Should be in the paused state initially");
+    Assert.isFalse(pausedStateAfter, "Should not be in the paused state after");
+  }
+
   function test_Non_Owner_Cannot_Change_Rate() {
 
     // Arange
@@ -146,6 +183,49 @@ contract TestDRPTokenChanger {
     // Assert
     Assert.notEqual(newPrecision, precisionBefore, "New precision must be different from the current fee");
     Assert.equal(precisionBefore, precisionAfter, "Precision should not have been updated");
+    Assert.isTrue(hasThrown, "Should have thrown");
+  }
+
+  function test_Non_Owner_Cannot_Pause() {
+
+    // Arange
+    DRPSToken drpsToken = DRPSToken(DeployedAddresses.DRPSToken());
+    DRPUToken drpuToken = DRPUToken(DeployedAddresses.DRPUToken());
+    DRPTokenChanger changer = new DRPTokenChanger(drpsToken, drpuToken);
+    CallProxy proxy = CallProxy(callProxyFactory.create(changer));
+
+    bool pausedStateBefore = changer.isPaused();
+
+    // Act
+    DRPTokenChanger(proxy).pause(); // msg.sender will be the proxy
+    bool hasThrown = proxy.throws();
+    bool pausedStateAfter = changer.isPaused();
+
+    // Assert
+    Assert.isFalse(pausedStateBefore, "Should not be in the paused state initially");
+    Assert.isFalse(pausedStateAfter, "Should not be in the paused state after");
+    Assert.isTrue(hasThrown, "Should have thrown");
+  }
+
+  function test_Non_Owner_Cannot_Resume() {
+
+    // Arange
+    DRPSToken drpsToken = DRPSToken(DeployedAddresses.DRPSToken());
+    DRPUToken drpuToken = DRPUToken(DeployedAddresses.DRPUToken());
+    DRPTokenChanger changer = new DRPTokenChanger(drpsToken, drpuToken);
+    CallProxy proxy = CallProxy(callProxyFactory.create(changer));
+
+    changer.pause();
+    bool pausedStateBefore = changer.isPaused();
+
+    // Act
+    DRPTokenChanger(proxy).resume(); // msg.sender will be the proxy
+    bool hasThrown = proxy.throws();
+    bool pausedStateAfter = changer.isPaused();
+
+    // Assert
+    Assert.isTrue(pausedStateBefore, "Should be in the paused state initially");
+    Assert.isTrue(pausedStateAfter, "Should be in the paused state after");
     Assert.isTrue(hasThrown, "Should have thrown");
   }
 }

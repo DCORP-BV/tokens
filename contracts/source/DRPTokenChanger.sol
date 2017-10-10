@@ -32,7 +32,8 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
      * @param _drps Ref to the DRPS token smart-contract https://www.dcorp.it/drps
      * @param _drpu Ref to the DRPU token smart-contract https://www.dcorp.it/drpu
      */
-    function DRPTokenChanger(address _drps, address _drpu) TokenChanger(_drps, _drpu, 20000, 100, 4) {}
+    function DRPTokenChanger(address _drps, address _drpu) 
+        TokenChanger(_drps, _drpu, 20000, 100, 4, false) {}
 
 
     /**
@@ -42,7 +43,7 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
      * @param _fee The percentage of tokens that is charged
      */
     function setFee(uint _fee) public only_owner {
-        fee = _fee;
+        super.setFee(_fee);
     }
 
 
@@ -53,7 +54,7 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
      * @param _rate The rate used when changing tokens
      */
     function setRate(uint _rate) public only_owner {
-        rate = _rate;
+        super.setRate(_rate);
     }
 
 
@@ -64,7 +65,25 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
      * @param _decimals The amount of decimals used
      */
     function setPrecision(uint _decimals) public only_owner {
-        precision = 10**_decimals;
+        super.setPrecision(_decimals);
+    }
+
+
+    /**
+     * Pause the token changer making the contract 
+     * revert the transaction instead of converting 
+     */
+    function pause() public only_owner {
+        super.pause();
+    }
+
+
+    /**
+     * Resume the token changer making the contract 
+     * convert tokens instead of reverting the transaction 
+     */
+    function resume() public only_owner {
+        super.resume();
     }
 
 
@@ -78,9 +97,8 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
      * @param _from The account or contract that send the transaction
      * @param _value The value of tokens that where received
      */
-    function onTokensReceived(address _token, address _from, uint _value) internal {
+    function onTokensReceived(address _token, address _from, uint _value) internal is_token(_token) {
         require(_token == msg.sender);
-        require(_token == address(token1) || _token == address(token2));
 
         // Convert tokens
         convert(_token, _from, _value);

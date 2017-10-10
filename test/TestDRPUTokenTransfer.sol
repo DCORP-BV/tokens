@@ -60,7 +60,7 @@ contract TestDRPUTokenTransfer {
     uint receiverBalanceBefore = token.balanceOf(receiver);
 
     // Act
-    bool hasThrown = !address(token).call(bytes4(bytes32(sha3("transfer(address,uint)"))), receiver, amount);
+    bool hasThrown = !address(token).call(bytes4(bytes32(sha3("transfer(address,uint256)"))), receiver, amount);
     uint senderBalanceAfter = token.balanceOf(sender);
     uint receiverBalanceAfter = token.balanceOf(receiver);
 
@@ -85,7 +85,7 @@ contract TestDRPUTokenTransfer {
     uint receiverBalanceBefore = token.balanceOf(receiver);
 
     // Act
-    bool hasThrown = !address(token).call(bytes4(bytes32(sha3("transfer(address,uint)"))), receiver, amount);
+    bool hasThrown = !address(token).call(bytes4(bytes32(sha3("transfer(address,uint256)"))), receiver, amount);
     uint senderBalanceAfter = token.balanceOf(sender);
     uint receiverBalanceAfter = token.balanceOf(receiver);
 

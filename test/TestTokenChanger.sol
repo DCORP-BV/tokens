@@ -30,20 +30,23 @@ contract TestTokenChanger {
     uint rate = 20000; // 200%
     uint fee = 100; // 1%
     uint precision = 4; // decimals
+    bool pausedState = false;
 
     MockToken token1 = new MockToken("Token 1", "LEFT", false);
     MockToken token2 = new MockToken("Token 2", "RIGHT", false);
 
     // Act
     TokenChanger changer = new TokenChanger(
-      token1, token2, rate, fee, precision);
+      token1, token2, rate, fee, precision, pausedState);
 
+    bool actualPausedState = changer.isPaused();
     uint actualRate = changer.getRate();
     uint actualFee = changer.getFee();
     uint actualPrecision = changer.getPrecision();
     uint expectedPrecision = 10**precision;
 
     // Assert
+    Assert.equal(pausedState, actualPausedState, "Incorrect state");
     Assert.equal(rate, actualRate, "Incorrect rate");
     Assert.equal(fee, actualFee, "Incorrect fee");
     Assert.equal(expectedPrecision, actualPrecision, "Incorrect precision");
@@ -56,12 +59,13 @@ contract TestTokenChanger {
     uint rate = 20000; // 200%
     uint fee = 100; // 1%
     uint precision = 4; // decimals
+    bool pausedState = false;
 
     MockToken token1 = new MockToken("Token 1", "LEFT", false);
     MockToken token2 = new MockToken("Token 2", "RIGHT", false);
 
     TokenChanger changer = new TokenChanger(
-      token1, token2, rate, fee, precision);
+      token1, token2, rate, fee, precision, pausedState);
 
     // Act
     uint actualFee = changer.calculateFee(value);

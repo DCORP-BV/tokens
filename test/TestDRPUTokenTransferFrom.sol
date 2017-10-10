@@ -86,7 +86,7 @@ contract TestDRPUTokenTransferFrom {
     uint spenderAllowanceBefore = token.allowance(owner, spender);
 
     // Act
-    bool hasThrown = !address(token).call(bytes4(bytes32(sha3("transferFrom(address,address,uint)"))), owner, receiver, amount);
+    bool hasThrown = !address(token).call(bytes4(bytes32(sha3("transferFrom(address,address,uint256)"))), owner, receiver, amount);
     uint spenderAllowanceAfter = token.allowance(owner, spender);
 
     // Assert
@@ -112,7 +112,7 @@ contract TestDRPUTokenTransferFrom {
     uint receiverBalanceBefore = token.balanceOf(receiver);
 
     // Act
-    bool hasThrown = !address(token).call(bytes4(bytes32(sha3("transferFrom(address,address,uint)"))), owner, receiver, amount);
+    bool hasThrown = !address(token).call(bytes4(bytes32(sha3("transferFrom(address,address,uint256)"))), owner, receiver, amount);
     uint ownerBalanceAfter = token.balanceOf(owner);
     uint receiverBalanceAfter = token.balanceOf(receiver);
 

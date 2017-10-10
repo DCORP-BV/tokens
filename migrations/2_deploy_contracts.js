@@ -7,7 +7,6 @@ var DRPTokenChanger = artifacts.require("DRPTokenChanger")
 
 // Testing
 var Accounts = artifacts.require("Accounts")
-var TestCallProxyFactory = artifacts.require("CallProxyFactory")
 
 // Instances
 var whitelistInstance

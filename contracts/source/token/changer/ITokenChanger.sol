@@ -12,6 +12,17 @@ contract ITokenChanger {
 
 
     /**
+     * Returns whether the token changer is currently 
+     * paused or not. While being in the paused state 
+     * the contract should revert the transaction instead 
+     * of converting tokens
+     *
+     * @return Whether the token changer is in the paused state
+     */
+    function isPaused() constant returns (bool);
+
+
+    /**
      * Returns the fee that is paid in tokens when using 
      * the token changer
      *

@@ -14,12 +14,23 @@ import "../IManagedToken.sol";
  */
 contract TokenChanger is ITokenChanger {
 
-    IManagedToken internal token1; // token1 = token2 * rate / precision
-    IManagedToken internal token2; // token2 = token1 / rate * precision
+    IManagedToken private token1; // token1 = token2 * rate / precision
+    IManagedToken private token2; // token2 = token1 / rate * precision
 
-    uint internal rate; // Ratio between tokens
-    uint internal fee; // Percentage lost in transfer
-    uint internal precision; // Precision 
+    uint private rate; // Ratio between tokens
+    uint private fee; // Percentage lost in transfer
+    uint private precision; // Precision 
+    bool private paused; // Paused state
+
+
+    /**
+     * Only if '_token' is the left or right token 
+     * that of the token changer
+     */
+    modifier is_token(address _token) {
+        require(_token == address(token1) || _token == address(token2));
+        _;
+    }
 
 
     /**
@@ -30,13 +41,15 @@ contract TokenChanger is ITokenChanger {
      * @param _rate The rate used when changing tokens
      * @param _fee The percentage of tokens that is charged
      * @param _decimals The amount of decimals used for _rate and _fee
+     * @param _paused Wheter the token changer starts in the paused state or not
      */
-    function TokenChanger(address _token1, address _token2, uint _rate, uint _fee, uint _decimals) {
+    function TokenChanger(address _token1, address _token2, uint _rate, uint _fee, uint _decimals, bool _paused) {
         token1 = IManagedToken(_token1);
         token2 = IManagedToken(_token2);
         rate = _rate;
         fee = _fee;
         precision = 10**_decimals;
+        paused = _paused;
     }
 
 
@@ -52,6 +65,17 @@ contract TokenChanger is ITokenChanger {
 
 
     /**
+     * Allow the owner of the token changer to modify the 
+     * fee that is paid in tokens when using the token changer
+     *
+     * @param _fee The percentage of tokens that is charged
+     */
+    function setFee(uint _fee) public {
+        fee = _fee;
+    }
+
+
+    /**
      * Returns the rate that is used to change between tokens
      *
      * @return The rate used when changing tokens
@@ -62,12 +86,65 @@ contract TokenChanger is ITokenChanger {
 
 
     /**
+     * Allow the owner of the token changer to modify the 
+     * rate that is used to change between DRPU and DRPS
+     *
+     * @param _rate The rate used when changing tokens
+     */
+    function setRate(uint _rate) public {
+        rate = _rate;
+    }
+
+
+    /**
      * Returns the precision of the rate and fee params
      *
      * @return The amount of decimals used
      */
     function getPrecision() public constant returns (uint) {
         return precision;
+    }
+
+
+    /**
+     * Allow the owner of the token changer to modify the 
+     * precision of the rate and fee params
+     *
+     * @param _decimals The amount of decimals used
+     */
+    function setPrecision(uint _decimals) public {
+        precision = 10**_decimals;
+    }
+
+
+    /**
+     * Returns whether the token changer is currently 
+     * paused or not. While being in the paused state 
+     * the contract should revert the transaction instead 
+     * of converting tokens
+     *
+     * @return Whether the token changer is in the paused state
+     */
+    function isPaused() public constant returns (bool) {
+        return paused;
+    }
+
+
+    /**
+     * Pause the token changer making the contract 
+     * revert the transaction instead of converting 
+     */
+    function pause() public {
+        paused = true;
+    }
+
+
+    /**
+     * Resume the token changer making the contract 
+     * convert tokens instead of reverting the transaction 
+     */
+    function resume() public {
+        paused = false;
     }
 
 
@@ -90,6 +167,7 @@ contract TokenChanger is ITokenChanger {
      * @param _value The amount of tokens that where received
      */
     function convert(address _from, address _sender, uint _value) internal {
+        require(!paused);
         require(_value > 0);
 
         uint amountToIssue;
