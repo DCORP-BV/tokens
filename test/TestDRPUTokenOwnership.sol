@@ -73,6 +73,7 @@ contract TestDRPUTokenOwnership {
     Assert.isTrue(hasThrown, "Should have thrown");
   }
 
+  // TODO: Why can't we remove the last item from an array
   function test_Owner_Can_Remove_Owner() {
 
     // Arrange
