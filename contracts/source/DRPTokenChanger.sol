@@ -61,10 +61,10 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
      * Allow the owner of the token changer to modify the 
      * precision of the rate and fee params
      *
-     * @param _precision The amount of decimals used
+     * @param _decimals The amount of decimals used
      */
-    function setPrecision(uint _precision) public only_owner {
-        precision = _precision;
+    function setPrecision(uint _decimals) public only_owner {
+        precision = 10**_decimals;
     }
 
 

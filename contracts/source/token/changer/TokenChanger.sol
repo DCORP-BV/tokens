@@ -29,14 +29,14 @@ contract TokenChanger is ITokenChanger {
      * @param _token2 Ref to the 'right' token smart-contract
      * @param _rate The rate used when changing tokens
      * @param _fee The percentage of tokens that is charged
-     * @param _precision The amount of decimals used for _rate and _fee
+     * @param _decimals The amount of decimals used for _rate and _fee
      */
-    function TokenChanger(address _token1, address _token2, uint _rate, uint _fee, uint _precision) {
+    function TokenChanger(address _token1, address _token2, uint _rate, uint _fee, uint _decimals) {
         token1 = IManagedToken(_token1);
         token2 = IManagedToken(_token2);
         rate = _rate;
         fee = _fee;
-        precision = 10**_precision;
+        precision = 10**_decimals;
     }
 
 
@@ -100,7 +100,7 @@ contract TokenChanger is ITokenChanger {
         }
 
         else if (_from == address(token2)) {
-            amountToIssue = _value / rate * precision;
+            amountToIssue = _value * precision / rate;
             token2.burn(this, _value);
             token1.issue(_sender, amountToIssue - calculateFee(amountToIssue));
         }
