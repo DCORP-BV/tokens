@@ -2,25 +2,21 @@ pragma solidity ^0.4.15;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
-import "../contracts/test/Accounts.sol";
-import "../contracts/test/proxy/CallProxy.sol";
-import "../contracts/test/proxy/CallProxyFactory.sol";
-import "../contracts/source/DRPSToken.sol";
+import "../../contracts/test/Accounts.sol";
+import "../../contracts/source/DRPUToken.sol";
 
 /**
- * DRPS token transfer unit tests
+ * DRPU token transfer unit tests
  *
  * #created 01/10/2017
  * #author Frank Bonnet
  */  
-contract TestDRPSTokenTransfer {
+contract TestDRPUTokenTransfer {
 
   Accounts private accounts;
-  CallProxyFactory private callProxyFactory;
 
-  function TestDRPSTokenTransfer() {
-    accounts = Accounts(DeployedAddresses.Accounts());
-    callProxyFactory = new CallProxyFactory();    
+  function TestDRPUTokenTransfer() {
+    accounts = Accounts(DeployedAddresses.Accounts()); 
   }
 
   function test_Can_Transfer() {
@@ -30,7 +26,7 @@ contract TestDRPSTokenTransfer {
     address sender = this;
     address receiver = accounts.get(2);
 
-    DRPSToken token = new DRPSToken();
+    DRPUToken token = new DRPUToken();
     token.issue(sender, amount);
 
     uint senderBalanceBefore = token.balanceOf(sender);
@@ -53,7 +49,7 @@ contract TestDRPSTokenTransfer {
     address sender = this;
     address receiver = accounts.get(2);
 
-    DRPSToken token = new DRPSToken();
+    DRPUToken token = new DRPUToken();
     token.issue(sender, amount - 1);
 
     uint senderBalanceBefore = token.balanceOf(sender);
@@ -77,7 +73,7 @@ contract TestDRPSTokenTransfer {
     address sender = this;
     address receiver = accounts.get(2);
 
-    DRPSToken token = new DRPSToken();
+    DRPUToken token = new DRPUToken();
     token.issue(sender, amount);
     token.lock();
 

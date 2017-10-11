@@ -2,6 +2,7 @@ pragma solidity ^0.4.15;
 
 import "./ITokenChanger.sol";
 import "../IManagedToken.sol";
+import "../../../infrastructure/state/IPausable.sol";
 
 /**
  * @title Token Changer
@@ -12,16 +13,16 @@ import "../IManagedToken.sol";
  * #created 06/10/2017
  * #author Frank Bonnet
  */
-contract TokenChanger is ITokenChanger {
+contract TokenChanger is ITokenChanger, IPausable {
 
-    IManagedToken internal token1; // token1 = token2 * rate / precision
-    IManagedToken internal token2; // token2 = token1 / rate * precision
+    IManagedToken private tokenLeft; // tokenLeft = tokenRight * rate / precision
+    IManagedToken private tokenRight; // tokenRight = tokenLeft / rate * precision
 
-    uint internal rate; // Ratio between tokens
-    uint internal fee; // Percentage lost in transfer
-    uint internal precision; // Precision 
-    bool internal paused; // Paused state
-    bool internal burn; // Wheter the changer should burn tokens
+    uint private rate; // Ratio between tokens
+    uint private fee; // Percentage lost in transfer
+    uint private precision; // Precision 
+    bool private paused; // Paused state
+    bool private burn; // Wheter the changer should burn tokens
 
 
     /**
@@ -29,7 +30,7 @@ contract TokenChanger is ITokenChanger {
      * that of the token changer
      */
     modifier is_token(address _token) {
-        require(_token == address(token1) || _token == address(token2));
+        require(_token == address(tokenLeft) || _token == address(tokenRight));
         _;
     }
 
@@ -37,22 +38,54 @@ contract TokenChanger is ITokenChanger {
     /**
      * Construct token changer
      *
-     * @param _token1 Ref to the 'left' token smart-contract
-     * @param _token2 Ref to the 'right' token smart-contract
+     * @param _tokenLeft Ref to the 'left' token smart-contract
+     * @param _tokenRight Ref to the 'right' token smart-contract
      * @param _rate The rate used when changing tokens
      * @param _fee The percentage of tokens that is charged
      * @param _decimals The amount of decimals used for _rate and _fee
      * @param _paused Wheter the token changer starts in the paused state or not
      * @param _burn Wheter the changer should burn tokens or not
      */
-    function TokenChanger(address _token1, address _token2, uint _rate, uint _fee, uint _decimals, bool _paused, bool _burn) {
-        token1 = IManagedToken(_token1);
-        token2 = IManagedToken(_token2);
+    function TokenChanger(address _tokenLeft, address _tokenRight, uint _rate, uint _fee, uint _decimals, bool _paused, bool _burn) {
+        tokenLeft = IManagedToken(_tokenLeft);
+        tokenRight = IManagedToken(_tokenRight);
         rate = _rate;
         fee = _fee;
-        precision = 10**_decimals;
+        precision = _decimals > 0 ? 10**_decimals : 1;
         paused = _paused;
         burn = _burn;
+    }
+
+    
+    /**
+     * Returns true if '_token' is on of the tokens that are 
+     * managed by this token changer
+     * 
+     * @param _token The address being tested
+     * @return Wheter the '_token' is part of this token changer
+     */
+    function isToken(address _token) public constant returns (bool) {
+        return _token == address(tokenLeft) || _token == address(tokenRight);
+    }
+
+
+    /**
+     * Returns the address of the left token
+     *
+     * @return Left token address
+     */
+    function getLeftToken() public constant returns (address) {
+        return tokenLeft;
+    }
+
+
+    /**
+     * Returns the address of the right token
+     *
+     * @return Right token address
+     */
+    function getRightToken() public constant returns (address) {
+        return tokenRight;
     }
 
 
@@ -116,7 +149,7 @@ contract TokenChanger is ITokenChanger {
      * @param _decimals The amount of decimals used
      */
     function setPrecision(uint _decimals) public {
-        precision = 10**_decimals;
+        precision = _decimals > 0 ? 10**_decimals : 1;
     }
 
 
@@ -154,10 +187,11 @@ contract TokenChanger is ITokenChanger {
     /**
      * Calculates and returns the fee based on `_value` of tokens
      *
+     * @param _value The amount of tokens that is being converted
      * @return The actual fee
      */
     function calculateFee(uint _value) public constant returns (uint) {
-        return fee == 0 ? _value : _value * fee / precision;
+        return fee == 0 ? 0 : _value * fee / precision;
     }
 
 
@@ -174,19 +208,19 @@ contract TokenChanger is ITokenChanger {
         require(_value > 0);
 
         uint amountToIssue;
-        if (_from == address(token1)) {
+        if (_from == address(tokenLeft)) {
             amountToIssue = _value * rate / precision;
-            token2.issue(_sender, amountToIssue - calculateFee(amountToIssue));
+            tokenRight.issue(_sender, amountToIssue - calculateFee(amountToIssue));
             if (burn) {
-                token1.burn(this, _value);
+                tokenLeft.burn(this, _value);
             }   
         } 
         
-        else if (_from == address(token2)) {
+        else if (_from == address(tokenRight)) {
             amountToIssue = _value * precision / rate;
-            token1.issue(_sender, amountToIssue - calculateFee(amountToIssue));
+            tokenLeft.issue(_sender, amountToIssue - calculateFee(amountToIssue));
             if (burn) {
-                token2.burn(this, _value);
+                tokenRight.burn(this, _value);
             } 
         }
     }

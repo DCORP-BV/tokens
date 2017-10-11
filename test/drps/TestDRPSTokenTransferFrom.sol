@@ -2,23 +2,23 @@ pragma solidity ^0.4.15;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
-import "../contracts/test/Accounts.sol";
-import "../contracts/test/proxy/CallProxy.sol";
-import "../contracts/test/proxy/CallProxyFactory.sol";
-import "../contracts/source/DRPUToken.sol";
+import "../../contracts/test/Accounts.sol";
+import "../../contracts/test/proxy/CallProxy.sol";
+import "../../contracts/test/proxy/CallProxyFactory.sol";
+import "../../contracts/source/DRPSToken.sol";
 
 /**
- * DRPU token transfer from unit tests
+ * DRPS token transfer from unit tests
  *
  * #created 01/10/2017
  * #author Frank Bonnet
  */  
-contract TestDRPUTokenTransferFrom {
+contract TestDRPSTokenTransferFrom {
 
   Accounts private accounts;
   CallProxyFactory private callProxyFactory;
 
-  function TestDRPUTokenTransferFrom() {
+  function TestDRPSTokenTransferFrom() {
     accounts = Accounts(DeployedAddresses.Accounts());
     callProxyFactory = new CallProxyFactory();    
   }
@@ -30,7 +30,7 @@ contract TestDRPUTokenTransferFrom {
     address owner = this;
     address spender = accounts.get(3);
 
-    DRPUToken token = new DRPUToken();
+    DRPSToken token = new DRPSToken();
     uint spenderAllowanceBefore = token.allowance(owner, spender);
 
     // Act
@@ -50,7 +50,7 @@ contract TestDRPUTokenTransferFrom {
     address spender = this;
     address receiver = accounts.get(1);
 
-    DRPUToken token = new DRPUToken();
+    DRPSToken token = new DRPSToken();
     token.issue(owner, amount);
     token.approve(spender, allowance);
     
@@ -79,7 +79,7 @@ contract TestDRPUTokenTransferFrom {
     address spender = this;
     address receiver = accounts.get(1);
 
-    DRPUToken token = new DRPUToken();
+    DRPSToken token = new DRPSToken();
     token.issue(owner, amount - 1);
     token.approve(spender, allowance);
     
@@ -103,7 +103,7 @@ contract TestDRPUTokenTransferFrom {
     address spender = this;
     address receiver = accounts.get(1);
 
-    DRPUToken token = new DRPUToken();
+    DRPSToken token = new DRPSToken();
     token.issue(owner, amount);
     token.approve(spender, allowance);
     token.lock();

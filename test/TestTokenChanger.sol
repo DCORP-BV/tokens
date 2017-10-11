@@ -1,11 +1,7 @@
 pragma solidity ^0.4.15;
 
 import "truffle/Assert.sol";
-import "truffle/DeployedAddresses.sol";
-import "../contracts/test/Accounts.sol";
 import "../contracts/test/mock/MockToken.sol";
-import "../contracts/test/proxy/CallProxy.sol";
-import "../contracts/test/proxy/CallProxyFactory.sol";
 import "../contracts/source/token/changer/TokenChanger.sol";
 
 /**
@@ -16,14 +12,6 @@ import "../contracts/source/token/changer/TokenChanger.sol";
  */  
 contract TestTokenChanger {
 
-  Accounts private accounts;
-  CallProxyFactory private callProxyFactory;
-
-  function TestTokenChanger() {
-    accounts = Accounts(DeployedAddresses.Accounts());
-    callProxyFactory = new CallProxyFactory();
-  }
-
   function test_Can_Setup_Token_Changer() {
 
     // Arange
@@ -31,13 +19,14 @@ contract TestTokenChanger {
     uint fee = 100; // 1%
     uint precision = 4; // decimals
     bool pausedState = false;
+    bool shouldBurn = true;
 
-    MockToken token1 = new MockToken("Token 1", "LEFT", false);
-    MockToken token2 = new MockToken("Token 2", "RIGHT", false);
+    MockToken token1 = new MockToken("Token 1", "LEFT", 8, false);
+    MockToken token2 = new MockToken("Token 2", "RIGHT", 8, false);
 
     // Act
     TokenChanger changer = new TokenChanger(
-      token1, token2, rate, fee, precision, pausedState);
+      token1, token2, rate, fee, precision, pausedState, shouldBurn);
 
     bool actualPausedState = changer.isPaused();
     uint actualRate = changer.getRate();
@@ -60,12 +49,13 @@ contract TestTokenChanger {
     uint fee = 100; // 1%
     uint precision = 4; // decimals
     bool pausedState = false;
+    bool shouldBurn = true;
 
-    MockToken token1 = new MockToken("Token 1", "LEFT", false);
-    MockToken token2 = new MockToken("Token 2", "RIGHT", false);
+    MockToken token1 = new MockToken("Token 1", "LEFT", 8, false);
+    MockToken token2 = new MockToken("Token 2", "RIGHT", 8, false);
 
     TokenChanger changer = new TokenChanger(
-      token1, token2, rate, fee, precision, pausedState);
+      token1, token2, rate, fee, precision, pausedState, shouldBurn);
 
     // Act
     uint actualFee = changer.calculateFee(value);

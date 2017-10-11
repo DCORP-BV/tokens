@@ -23,34 +23,14 @@ contract DRPUTokenConverter is TokenChanger, TransferableOwnership, ITokenRetrei
     /**
      * Construct drp - drpu token changer
      *
+     * Rate is multiplied by 10**6 taking into account the difference in 
+     * decimals between (old) DRP (2) and DRPU (8)
+     *
      * @param _drp Ref to the (old) DRP token smart-contract
      * @param _drpu Ref to the DRPU token smart-contract https://www.dcorp.it/drpu
      */
     function DRPUTokenConverter(address _drp, address _drpu) 
-        TokenChanger(_drp, _drpu, 2, 0, 0, false, false) {}
-
-
-    /**
-     * Request that the (old) drp smart-contract transfers `_value` worth 
-     * of (old) drp to the drpu token converter to be converted
-     * 
-     * Note! This function requires the drpu token converter smart-contract 
-     * to be approved to spend at least `_value` worth of (old) drp by the 
-     * owner of the tokens by calling the approve() function in the (old) 
-     * dpr token smart-contract
-     *
-     * @param _value The amount of tokens to transfer and convert
-     */
-    function transfer(uint _value) public {
-        require(_value > 0);
-        address sender = msg.sender;
-
-        // Transfer old drp from sender to converter
-        token1.transferFrom(sender, this, _value);
-
-        // Convert tokens
-        convert(token1, sender, _value);
-    }
+        TokenChanger(_drp, _drpu, 2 * 10**6, 0, 0, false, false) {}
 
 
     /**
@@ -72,6 +52,31 @@ contract DRPUTokenConverter is TokenChanger, TransferableOwnership, ITokenRetrei
 
 
     /**
+     * Request that the (old) drp smart-contract transfers `_value` worth 
+     * of (old) drp to the drpu token converter to be converted
+     * 
+     * Note! This function requires the drpu token converter smart-contract 
+     * to be approved to spend at least `_value` worth of (old) drp by the 
+     * owner of the tokens by calling the approve() function in the (old) 
+     * dpr token smart-contract
+     *
+     * @param _value The amount of tokens to transfer and convert
+     */
+    function requestConversion(uint _value) public {
+        require(_value > 0);
+
+        address sender = msg.sender;
+        IToken drpToken = IToken(getLeftToken());
+
+        // Transfer old drp from sender to converter
+        drpToken.transferFrom(sender, address(this), _value);
+
+        // Convert tokens
+        convert(drpToken, sender, _value);
+    }
+
+
+    /**
      * Failsafe mechanism
      * 
      * Allows the owner to retreive tokens from the contract that 
@@ -80,6 +85,8 @@ contract DRPUTokenConverter is TokenChanger, TransferableOwnership, ITokenRetrei
      * @param _tokenContract The address of ERC20 compatible token
      */
     function retreiveTokens(address _tokenContract) public only_owner {
+        require(getLeftToken() != _tokenContract); // Ensure that the (old) drp token stays locked
+
         IToken tokenInstance = IToken(_tokenContract);
         uint tokenBalance = tokenInstance.balanceOf(this);
         if (tokenBalance > 0) {

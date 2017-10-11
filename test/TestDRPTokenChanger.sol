@@ -4,8 +4,6 @@ import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/test/proxy/CallProxy.sol";
 import "../contracts/test/proxy/CallProxyFactory.sol";
-import "../contracts/test/mock/MockToken.sol";
-import "../contracts/test/mock/MockTokenObserver.sol";
 import "../contracts/source/DRPSToken.sol";
 import "../contracts/source/DRPUToken.sol";
 import "../contracts/source/DRPTokenChanger.sol";

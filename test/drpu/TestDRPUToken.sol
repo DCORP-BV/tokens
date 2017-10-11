@@ -2,10 +2,9 @@ pragma solidity ^0.4.15;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
-import "../contracts/test/Accounts.sol";
-import "../contracts/test/proxy/CallProxy.sol";
-import "../contracts/test/proxy/CallProxyFactory.sol";
-import "../contracts/source/DRPUToken.sol";
+import "../../contracts/test/proxy/CallProxy.sol";
+import "../../contracts/test/proxy/CallProxyFactory.sol";
+import "../../contracts/source/DRPUToken.sol";
 
 /**
  * DRPU token unit tests
@@ -15,11 +14,9 @@ import "../contracts/source/DRPUToken.sol";
  */  
 contract TestDRPUToken {
 
-  Accounts private accounts;
   CallProxyFactory private callProxyFactory;
 
   function TestDRPUToken() {
-    accounts = Accounts(DeployedAddresses.Accounts());
     callProxyFactory = new CallProxyFactory();
   }
   

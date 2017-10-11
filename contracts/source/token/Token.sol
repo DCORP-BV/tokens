@@ -18,7 +18,7 @@ contract Token is IToken, InputValidator {
     string public standard = "Token 0.3";
     string public name;        
     string public symbol;
-    uint8 public decimals = 8;
+    uint8 public decimals;
 
     // Token state
     uint internal totalTokenSupply;
@@ -35,14 +35,16 @@ contract Token is IToken, InputValidator {
     event Approval(address indexed _owner, address indexed _spender, uint _value);
 
     /** 
-     * Construct 
+     * Construct ERC20 token
      * 
      * @param _name The full token name
      * @param _symbol The token symbol (aberration)
+     * @param _decimals The token precision
      */
-    function Token(string _name, string _symbol) {
+    function Token(string _name, string _symbol, uint8 _decimals) {
         name = _name;
         symbol = _symbol;
+        decimals = _decimals;
         balances[msg.sender] = 0;
         totalTokenSupply = 0;
     }

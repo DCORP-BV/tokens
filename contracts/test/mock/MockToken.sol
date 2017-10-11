@@ -17,7 +17,8 @@ contract MockToken is ManagedToken, Observable {
     /**
      * Construct mock token
      */
-    function MockToken(string _name, string _symbol, bool _locked) ManagedToken(_name, _symbol, _locked) {}
+    function MockToken(string _name, string _symbol, uint8 _decimals, bool _locked) 
+        ManagedToken(_name, _symbol, _decimals, _locked) {}
 
 
     /**

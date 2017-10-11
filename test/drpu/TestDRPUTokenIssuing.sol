@@ -2,10 +2,10 @@ pragma solidity ^0.4.15;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
-import "../contracts/test/Accounts.sol";
-import "../contracts/test/proxy/CallProxy.sol";
-import "../contracts/test/proxy/CallProxyFactory.sol";
-import "../contracts/source/DRPUToken.sol";
+import "../../contracts/test/Accounts.sol";
+import "../../contracts/test/proxy/CallProxy.sol";
+import "../../contracts/test/proxy/CallProxyFactory.sol";
+import "../../contracts/source/DRPUToken.sol";
 
 /**
  * DRPU token issuing unit tests

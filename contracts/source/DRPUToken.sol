@@ -23,7 +23,7 @@ contract DRPUToken is ManagedToken, Observable, ITokenRetreiver {
     /**
      * Construct the managed utility token
      */
-    function DRPUToken() ManagedToken("DRP Utility", "DRPU", false) {}
+    function DRPUToken() ManagedToken("DRP Utility", "DRPU", 8, false) {}
 
 
     /**

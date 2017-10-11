@@ -12,14 +12,29 @@ contract ITokenChanger {
 
 
     /**
-     * Returns whether the token changer is currently 
-     * paused or not. While being in the paused state 
-     * the contract should revert the transaction instead 
-     * of converting tokens
-     *
-     * @return Whether the token changer is in the paused state
+     * Returns true if '_token' is on of the tokens that are 
+     * managed by this token changer
+     * 
+     * @param _token The address being tested
+     * @return Wheter the '_token' is part of this token changer
      */
-    function isPaused() constant returns (bool);
+    function isToken(address _token) constant returns (bool);
+
+
+    /**
+     * Returns the address of the left token
+     *
+     * @return Left token address
+     */
+    function getLeftToken() constant returns (address);
+
+
+    /**
+     * Returns the address of the right token
+     *
+     * @return Right token address
+     */
+    function getRightToken() constant returns (address);
 
 
     /**

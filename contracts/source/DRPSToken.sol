@@ -26,7 +26,7 @@ contract DRPSToken is ManagedToken, Observable, ITokenRetreiver {
     /**
      * Construct the managed security token
      */
-    function DRPSToken() ManagedToken("DRP Security", "DRPS", false) {}
+    function DRPSToken() ManagedToken("DRP Security", "DRPS", 8, false) {}
 
 
     /**

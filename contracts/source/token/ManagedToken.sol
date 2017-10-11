@@ -31,13 +31,15 @@ contract ManagedToken is IManagedToken, Token, MultiOwned {
 
 
     /** 
-     * Construct 
+     * Construct managed ERC20 token
      * 
      * @param _name The full token name
      * @param _symbol The token symbol (aberration)
+     * @param _decimals The token precision
      * @param _locked Whether the token should be locked initially
      */
-    function ManagedToken(string _name, string _symbol, bool _locked) Token(_name, _symbol) {
+    function ManagedToken(string _name, string _symbol, uint8 _decimals, bool _locked) 
+        Token(_name, _symbol, _decimals) {
         locked = _locked;
     }
 
