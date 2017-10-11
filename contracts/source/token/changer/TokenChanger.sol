@@ -14,13 +14,14 @@ import "../IManagedToken.sol";
  */
 contract TokenChanger is ITokenChanger {
 
-    IManagedToken private token1; // token1 = token2 * rate / precision
-    IManagedToken private token2; // token2 = token1 / rate * precision
+    IManagedToken internal token1; // token1 = token2 * rate / precision
+    IManagedToken internal token2; // token2 = token1 / rate * precision
 
-    uint private rate; // Ratio between tokens
-    uint private fee; // Percentage lost in transfer
-    uint private precision; // Precision 
-    bool private paused; // Paused state
+    uint internal rate; // Ratio between tokens
+    uint internal fee; // Percentage lost in transfer
+    uint internal precision; // Precision 
+    bool internal paused; // Paused state
+    bool internal burn; // Wheter the changer should burn tokens
 
 
     /**
@@ -42,14 +43,16 @@ contract TokenChanger is ITokenChanger {
      * @param _fee The percentage of tokens that is charged
      * @param _decimals The amount of decimals used for _rate and _fee
      * @param _paused Wheter the token changer starts in the paused state or not
+     * @param _burn Wheter the changer should burn tokens or not
      */
-    function TokenChanger(address _token1, address _token2, uint _rate, uint _fee, uint _decimals, bool _paused) {
+    function TokenChanger(address _token1, address _token2, uint _rate, uint _fee, uint _decimals, bool _paused, bool _burn) {
         token1 = IManagedToken(_token1);
         token2 = IManagedToken(_token2);
         rate = _rate;
         fee = _fee;
         precision = 10**_decimals;
         paused = _paused;
+        burn = _burn;
     }
 
 
@@ -173,14 +176,18 @@ contract TokenChanger is ITokenChanger {
         uint amountToIssue;
         if (_from == address(token1)) {
             amountToIssue = _value * rate / precision;
-            token1.burn(this, _value);
             token2.issue(_sender, amountToIssue - calculateFee(amountToIssue));
-        }
-
+            if (burn) {
+                token1.burn(this, _value);
+            }   
+        } 
+        
         else if (_from == address(token2)) {
             amountToIssue = _value * precision / rate;
-            token2.burn(this, _value);
             token1.issue(_sender, amountToIssue - calculateFee(amountToIssue));
+            if (burn) {
+                token2.burn(this, _value);
+            } 
         }
     }
 }

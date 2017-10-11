@@ -33,7 +33,7 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
      * @param _drpu Ref to the DRPU token smart-contract https://www.dcorp.it/drpu
      */
     function DRPTokenChanger(address _drps, address _drpu) 
-        TokenChanger(_drps, _drpu, 20000, 100, 4, false) {}
+        TokenChanger(_drps, _drpu, 20000, 100, 4, false, true) {}
 
 
     /**
