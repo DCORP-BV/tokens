@@ -15,7 +15,7 @@ contract TestDRPTokenChangerConvertPausedDRPU {
 
   function test_Cannot_Convert_DRPU_To_DRPS_In_Paused_State() {
 
-    // Arange
+    // Arrange
     address account = this;
     uint value = 3500;
 

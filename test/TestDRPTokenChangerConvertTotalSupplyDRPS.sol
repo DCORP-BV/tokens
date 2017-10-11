@@ -15,7 +15,7 @@ contract TestDRPTokenChangerConvertTotalSupplyDRPS {
 
   function test_Total_Supply_Updates_When_Converting_DRPS_To_DRPU() {
 
-    // Arange
+    // Arrange
     address account = this;
     uint value = 3500;
     uint rate = 20000;
