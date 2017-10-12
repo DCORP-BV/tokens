@@ -84,7 +84,7 @@ contract Token is IToken, InputValidator {
         require(balances[msg.sender] >= _value);   
 
         // Check for overflows
-        require(balances[_to] + _value > balances[_to]);
+        require(balances[_to] + _value >= balances[_to]);
 
         // Transfer tokens
         balances[msg.sender] -= _value;
@@ -110,7 +110,7 @@ contract Token is IToken, InputValidator {
         require(balances[_from] >= _value);
 
         // Check for overflows
-        require(balances[_to] + _value > balances[_to]);
+        require(balances[_to] + _value >= balances[_to]);
 
         // Check allowance
         require(_value <= allowed[_from][msg.sender]);
