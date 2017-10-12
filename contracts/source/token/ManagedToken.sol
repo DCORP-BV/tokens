@@ -123,7 +123,7 @@ contract ManagedToken is IManagedToken, Token, MultiOwned {
     function issue(address _to, uint _value) public only_owner safe_arguments(2) returns (bool) {
         
         // Check for overflows
-        require(balances[_to] + _value > balances[_to]);
+        require(balances[_to] + _value >= balances[_to]);
 
         // Create tokens
         balances[_to] += _value;
@@ -150,7 +150,7 @@ contract ManagedToken is IManagedToken, Token, MultiOwned {
         require(balances[_from] >= _value);
 
         // Check for overflows
-        require(balances[_from] - _value < balances[_from]);
+        require(balances[_from] - _value =< balances[_from]);
 
         // Burn tokens
         balances[_from] -= _value;
