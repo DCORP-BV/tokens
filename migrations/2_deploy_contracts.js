@@ -4,19 +4,43 @@ var Whitelist = artifacts.require("Whitelist")
 var DRPUToken = artifacts.require("DRPUToken")
 var DRPSToken = artifacts.require("DRPSToken")
 var DRPTokenChanger = artifacts.require("DRPTokenChanger")
+var DRPUTokenConverter = artifacts.require("DRPUTokenConverter")
+var DRPSTokenConverter = artifacts.require("DRPSTokenConverter")
 
 // Testing
 var Accounts = artifacts.require("Accounts")
+var DRPMockToken = artifacts.require("MockToken")
 
 // Instances
 var whitelistInstance
 var drpuInstance
 var drpsInstance
 var drpTokenChangerInstance
+var drpuTokenConverterInstance
+var drpsTokenConverterInstance
+
+// Vars
 var deployingAccount
+var drpAddress
+
+var preDeploy = () => Promise.resolve()
+var postDeploy = () => Promise.resolve()
+
+var isTestingNetwork = function (network) {
+  return network == 'test' || network == 'develop' || network == 'development'
+}
 
 var deployTestArtifacts = function (deployer, network, accounts) {
-  return deployer.deploy(Accounts, accounts)
+  return deployer.deploy(Accounts, accounts).then(function () {
+    return deployer.deploy(DRPMockToken, 'DCorp', 'DRP', 2, false)
+  })
+  .then(function () {
+    return DRPMockToken.deployed()
+  })
+  .then(function (_instance) {
+    drpAddress = _instance.address
+    return Promise.resolve()
+  })
 }
 
 var cleanUp = function (deployer, network, accounts) {
@@ -26,22 +50,19 @@ var cleanUp = function (deployer, network, accounts) {
 }
 
 module.exports = function(deployer, network, accounts) {
-  deployingAccount = accounts[0]
 
-  var preDeploy = () => Promise.resolve();
-  if (network == 'test' || network == 'develop' || network == 'development') {
+  // Test env settings
+  if (isTestingNetwork(network)) {
+    deployingAccount = accounts[0]    
     preDeploy = function () {
       return deployTestArtifacts(deployer, network, accounts)
     }
-  }
-
-  var postDeploy = () => Promise.resolve();
-  if (network != 'test' && network != 'develop' && network != 'development') {
     postDeploy = function () {
       return cleanUp(deployer, network, accounts)
     }
   }
 
+  // Deploy
   return preDeploy().then(function (){
     return deployer.deploy(Whitelist)
   }) 
@@ -82,6 +103,26 @@ module.exports = function(deployer, network, accounts) {
   })
   .then(function () {
     return drpuInstance.registerObserver(drpTokenChangerInstance.address)
+  })
+  .then(function () {
+    return deployer.deploy(DRPUTokenConverter, drpAddress, drpuInstance.address) 
+  })
+  .then(function () {
+    return DRPUTokenConverter.deployed()
+  })
+  .then(function (_instance) {
+    drpuTokenConverterInstance = _instance
+    return deployer.deploy(DRPSTokenConverter, drpAddress, drpsInstance.address) 
+  })
+  .then(function () {
+    return DRPSTokenConverter.deployed()
+  })
+  .then(function (_instance) {
+    drpsTokenConverterInstance = _instance
+    return drpsInstance.addOwner(drpsTokenConverterInstance.address)
+  })
+  .then(function () {
+    return drpuInstance.addOwner(drpuTokenConverterInstance.address)
   })
   .then(function () {
     return postDeploy()
