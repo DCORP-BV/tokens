@@ -150,7 +150,7 @@ contract ManagedToken is IManagedToken, Token, MultiOwned {
         require(balances[_from] >= _value);
 
         // Check for overflows
-        require(balances[_from] - _value =< balances[_from]);
+        require(balances[_from] - _value <= balances[_from]);
 
         // Burn tokens
         balances[_from] -= _value;
