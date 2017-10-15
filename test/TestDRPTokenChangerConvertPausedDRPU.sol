@@ -1,19 +1,19 @@
 pragma solidity ^0.4.15;
 
 import "truffle/Assert.sol";
-import "../../contracts/source/DRPSToken.sol";
-import "../../contracts/source/DRPUToken.sol";
-import "../../contracts/source/DRPTokenChanger.sol";
+import "../contracts/source/DRPSToken.sol";
+import "../contracts/source/DRPUToken.sol";
+import "../contracts/source/DRPTokenChanger.sol";
 
 /**
- * DRP Token changer convert DRPS to DRPU unit tests
+ * DRP Token changer convert DRPU to DRPS unit tests
  *
  * #created 01/10/2017
  * #author Frank Bonnet
  */  
-contract TestDRPTokenChangerConvertPausedDRPS {
+contract TestDRPTokenChangerConvertPausedDRPU {
 
-  function test_Cannot_Convert_DRPS_To_DRPU_In_Paused_State() {
+  function test_Cannot_Convert_DRPU_To_DRPS_In_Paused_State() {
 
     // Arrange
     address account = this;
@@ -25,16 +25,16 @@ contract TestDRPTokenChangerConvertPausedDRPS {
 
     drpuToken.addOwner(changer);
     drpsToken.addOwner(changer);
-    drpsToken.registerObserver(changer);
+    drpuToken.registerObserver(changer);
 
-    drpsToken.issue(account, value);
+    drpuToken.issue(account, value);
     uint drpsBalanceBefore = drpsToken.balanceOf(account);
     uint drpuBalanceBefore = drpuToken.balanceOf(account);
 
     changer.pause();
 
     // Act
-    bool hasThrown = !address(drpsToken).call(bytes4(bytes32(sha3("transfer(address,uint256)"))), address(changer), value);
+    bool hasThrown = !address(drpuToken).call(bytes4(bytes32(sha3("transfer(address,uint256)"))), address(changer), value);
     uint drpsBalanceAfter = drpsToken.balanceOf(account);
     uint drpuBalanceAfter = drpuToken.balanceOf(account);
 

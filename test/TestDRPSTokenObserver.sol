@@ -2,11 +2,11 @@ pragma solidity ^0.4.15;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
-import "../../contracts/test/Accounts.sol";
-import "../../contracts/test/mock/MockTokenObserver.sol";
-import "../../contracts/test/proxy/CallProxy.sol";
-import "../../contracts/test/proxy/CallProxyFactory.sol";
-import "../../contracts/source/DRPSToken.sol";
+import "../contracts/test/Accounts.sol";
+import "../contracts/test/mock/MockTokenObserver.sol";
+import "../contracts/test/proxy/CallProxy.sol";
+import "../contracts/test/proxy/CallProxyFactory.sol";
+import "../contracts/source/DRPSToken.sol";
 
 /**
  * DRPS token observer unit tests

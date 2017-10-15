@@ -1,9 +1,9 @@
 pragma solidity ^0.4.15;
 
 import "truffle/Assert.sol";
-import "../../contracts/source/DRPSToken.sol";
-import "../../contracts/source/DRPUToken.sol";
-import "../../contracts/source/DRPTokenChanger.sol";
+import "../contracts/source/DRPSToken.sol";
+import "../contracts/source/DRPUToken.sol";
+import "../contracts/source/DRPTokenChanger.sol";
 
 /**
  * DRP Token changer convert DRPS to DRPS unit tests

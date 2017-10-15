@@ -1,9 +1,9 @@
 pragma solidity ^0.4.15;
 
 import "truffle/Assert.sol";
-import "../../contracts/test/mock/MockToken.sol";
-import "../../contracts/source/DRPUToken.sol";
-import "../../contracts/source/DRPUTokenConverter.sol";
+import "../contracts/test/mock/MockToken.sol";
+import "../contracts/source/DRPUToken.sol";
+import "../contracts/source/DRPUTokenConverter.sol";
 
 /**
  * DRPU Token converter unit tests
