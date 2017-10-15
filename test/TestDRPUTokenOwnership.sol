@@ -23,18 +23,6 @@ contract TestDRPUTokenOwnership {
     callProxyFactory = new CallProxyFactory();
   }
 
-  function test_Initial_Owner_Is_Deploying_Account() {
-    
-    // Arange
-    DRPUToken token = DRPUToken(DeployedAddresses.DRPUToken());
-
-    // Act 
-    bool isOwner = token.isOwner(tx.origin);
-
-    // Assert
-    Assert.isTrue(isOwner, "The deploying account is not the owner of the token contract");
-  }
-
   function test_Owner_Can_Add_Owner() {
 
     // Arrange

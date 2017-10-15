@@ -1,9 +1,11 @@
 pragma solidity ^0.4.15;
 
 import "truffle/Assert.sol";
+import "truffle/DeployedAddresses.sol";
 import "../contracts/test/mock/MockToken.sol";
 import "../contracts/source/DRPSToken.sol";
 import "../contracts/source/DRPSTokenConverter.sol";
+import "../contracts/infrastructure/authentication/whitelist/Whitelist.sol";
 
 /**
  * DRPS Token converter unit tests
