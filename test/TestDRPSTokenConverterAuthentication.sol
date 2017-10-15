@@ -13,40 +13,34 @@ import "../contracts/infrastructure/authentication/whitelist/Whitelist.sol";
  * #created 01/10/2017
  * #author Frank Bonnet
  */  
-contract TestDRPSTokenConverter {
+contract TestDRPSTokenConverterAuthentication {
 
-  function test_Can_Convert_DRP_To_DRPS() {
+  function test_Cannot_Convert_DRP_To_DRPS_When_Not_Authenticated() {
 
     // Arrange
     address account = this;
     uint value = 3600;
-    uint rate = 1 * 10**6; // Diff in decimals
 
     DRPSToken drpsToken = new DRPSToken();
     MockToken drpToken = new MockToken("DCORP", "DRP", 2, false);
     Whitelist whitelist = Whitelist(DeployedAddresses.Whitelist());
 
     DRPSTokenConverter converter = new DRPSTokenConverter(whitelist, drpToken, drpsToken);
-    converter.disableAuthentication(); // Prevent out of gas by not deploying a new whitelist buy disabeling authentication for the test instead
+    converter.enableAuthentication(); // Prevent out of gas by not deploying a new whitelist but by making sure authentication is enabled for the test instead
 
     drpsToken.addOwner(converter);
     drpToken.issue(account, value);
     drpToken.approve(converter, value);
 
-    uint drpBalanceBefore = drpToken.balanceOf(account);
-    uint drpLockedInConverterBefore = drpToken.balanceOf(converter);
+    uint drpsBalanceBefore = drpsToken.balanceOf(account);
 
     // Act
-    converter.requestConversion(value);
-
-    uint drpBalanceAfter = drpToken.balanceOf(account);
-    uint drpLockedInConverterAfter = drpToken.balanceOf(converter);
+    bool hasThrown = !converter.call(bytes4(bytes32(sha3("requestConversion(uint256)"))), value);
     uint drpsBalanceAfter = drpsToken.balanceOf(account);
-    uint expectedBalance = value * rate;
 
     // Assert
-    Assert.equal(drpBalanceBefore - value, drpBalanceAfter, "DRP balance of sender is incorrect");
-    Assert.equal(drpLockedInConverterBefore + value, drpLockedInConverterAfter, "DRP balance of converter is incorrect");
-    Assert.equal(drpsBalanceAfter, expectedBalance, "DRPS balance is incorrect after converting");
+    Assert.isFalse(whitelist.authenticate(account), "Converting account should not be authenticated");
+    Assert.equal(drpsBalanceBefore, drpsBalanceAfter, "DRPS balance should not have changed");
+    Assert.isTrue(hasThrown, "Should have thrown");
   }
 }

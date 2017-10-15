@@ -103,14 +103,14 @@ module.exports = function(deployer, network, accounts) {
     return drpuInstance.registerObserver(drpTokenChangerInstance.address)
   })
   .then(function () {
-    return deployer.deploy(DRPUTokenConverter, drpAddress, drpuInstance.address) 
+    return deployer.deploy(DRPUTokenConverter, whitelistInstance.address, drpAddress, drpuInstance.address) 
   })
   .then(function () {
     return DRPUTokenConverter.deployed()
   })
   .then(function (_instance) {
     drpuTokenConverterInstance = _instance
-    return deployer.deploy(DRPSTokenConverter, drpAddress, drpsInstance.address) 
+    return deployer.deploy(DRPSTokenConverter, whitelistInstance.address, drpAddress, drpsInstance.address) 
   })
   .then(function () {
     return DRPSTokenConverter.deployed()

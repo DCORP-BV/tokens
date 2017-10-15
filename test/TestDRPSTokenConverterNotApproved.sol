@@ -21,10 +21,12 @@ contract TestDRPSTokenConverterNotApproved {
 
     DRPSToken drpsToken = new DRPSToken();
     MockToken drpToken = new MockToken("DCORP", "DRP", 2, false);
+    Whitelist whitelist = Whitelist(DeployedAddresses.Whitelist());
 
-    address converter = new DRPSTokenConverter(drpToken, drpsToken);
+    DRPSTokenConverter converter = new DRPSTokenConverter(whitelist, drpToken, drpsToken);
+    converter.disableAuthentication(); // Prevent out of gas by not deploying a new whitelist buy disabeling authentication for the test instead
+
     drpsToken.addOwner(converter);
-
     drpToken.issue(account, value);
 
     uint drpBalanceBefore = drpToken.balanceOf(account);

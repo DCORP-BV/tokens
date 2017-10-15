@@ -2,6 +2,8 @@ pragma solidity ^0.4.15;
 
 import "./token/changer/TokenChanger.sol";
 import "./token/retreiver/ITokenRetreiver.sol";
+import "../infrastructure/authentication/AuthenticationManager.sol";
+import "../infrastructure/authentication/whitelist/IWhitelist.sol";
 import "../infrastructure/ownership/TransferableOwnership.sol";
 
 /**
@@ -17,7 +19,10 @@ import "../infrastructure/ownership/TransferableOwnership.sol";
  * #created 11/10/2017
  * #author Frank Bonnet
  */
-contract DRPUTokenConverter is TokenChanger, TransferableOwnership, ITokenRetreiver {
+contract DRPUTokenConverter is TokenChanger, AuthenticationManager, TransferableOwnership, ITokenRetreiver {
+
+    // Authentication
+    IWhitelist private whitelist;
 
 
     /**
@@ -26,11 +31,14 @@ contract DRPUTokenConverter is TokenChanger, TransferableOwnership, ITokenRetrei
      * Rate is multiplied by 10**6 taking into account the difference in 
      * decimals between (old) DRP (2) and DRPU (8)
      *
+     * @param _whitelist The address of the whitelist authenticator
      * @param _drp Ref to the (old) DRP token smart-contract
      * @param _drpu Ref to the DRPU token smart-contract https://www.dcorp.it/drpu
      */
-    function DRPUTokenConverter(address _drp, address _drpu) 
-        TokenChanger(_drp, _drpu, 2 * 10**6, 0, 0, false, false) {}
+    function DRPUTokenConverter(address _whitelist, address _drp, address _drpu) 
+        TokenChanger(_drp, _drpu, 2 * 10**6, 0, 0, false, false) AuthenticationManager(true) {
+        whitelist = IWhitelist(_whitelist);
+    }
 
 
     /**
@@ -52,6 +60,22 @@ contract DRPUTokenConverter is TokenChanger, TransferableOwnership, ITokenRetrei
 
 
     /**
+     * Enable authentication
+     */
+    function enableAuthentication() public only_owner {
+        super.enableAuthentication();
+    }
+
+
+    /**
+     * Disable authentication
+     */
+    function disableAuthentication() public only_owner {
+        super.disableAuthentication();
+    }
+
+
+    /**
      * Request that the (old) drp smart-contract transfers `_value` worth 
      * of (old) drp to the drpu token converter to be converted
      * 
@@ -64,15 +88,14 @@ contract DRPUTokenConverter is TokenChanger, TransferableOwnership, ITokenRetrei
      */
     function requestConversion(uint _value) public {
         require(_value > 0);
-
         address sender = msg.sender;
+
+        // Authenticate
+        require(!isAuthenticating() || whitelist.authenticate(sender));
+
         IToken drpToken = IToken(getLeftToken());
-
-        // Transfer old drp from sender to converter
-        drpToken.transferFrom(sender, address(this), _value);
-
-        // Convert tokens
-        convert(drpToken, sender, _value);
+        drpToken.transferFrom(sender, this, _value); // Transfer old drp from sender to converter 
+        convert(drpToken, sender, _value); // Convert to drps
     }
 
 
