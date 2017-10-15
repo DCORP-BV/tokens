@@ -20,7 +20,6 @@ var drpuTokenConverterInstance
 var drpsTokenConverterInstance
 
 // Vars
-var deployingAccount
 var drpAddress
 
 var preDeploy = () => Promise.resolve()
@@ -43,7 +42,7 @@ var deployTestArtifacts = function (deployer, network, accounts) {
   })
 }
 
-var cleanUp = function (deployer, network, accounts) {
+var cleanUp = function (deployingAccount) {
   return drpsInstance.removeOwner(deployingAccount).then(function(){
     return drpuInstance.removeOwner(deployingAccount)
   })
@@ -53,12 +52,11 @@ module.exports = function(deployer, network, accounts) {
 
   // Test env settings
   if (isTestingNetwork(network)) {
-    deployingAccount = accounts[0]    
     preDeploy = function () {
       return deployTestArtifacts(deployer, network, accounts)
     }
     postDeploy = function () {
-      return cleanUp(deployer, network, accounts)
+      return cleanUp(accounts[0])
     }
   }
 
