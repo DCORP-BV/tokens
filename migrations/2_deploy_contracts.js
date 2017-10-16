@@ -1,5 +1,6 @@
 
 // Contracts
+var DcorpProxy = artifacts.require("DcorpProxy")
 var Whitelist = artifacts.require("Whitelist")
 var DRPUToken = artifacts.require("DRPUToken")
 var DRPSToken = artifacts.require("DRPSToken")
@@ -18,9 +19,10 @@ var drpsInstance
 var drpTokenChangerInstance
 var drpuTokenConverterInstance
 var drpsTokenConverterInstance
+var dcorpProxyInstance
 
 // Vars
-var drpAddress
+var drpTokenAddress = '0x621d78f2ef2fd937bfca696cabaf9a779f59b3ed'
 
 var preDeploy = () => Promise.resolve()
 var postDeploy = () => Promise.resolve()
@@ -37,7 +39,7 @@ var deployTestArtifacts = function (deployer, network, accounts) {
     return DRPMockToken.deployed()
   })
   .then(function (_instance) {
-    drpAddress = _instance.address
+    drpTokenAddress = _instance.address
     return Promise.resolve()
   })
 }
@@ -53,7 +55,8 @@ module.exports = function(deployer, network, accounts) {
   // Test env settings
   if (isTestingNetwork(network)) {
     preDeploy = function () {
-      return deployTestArtifacts(deployer, network, accounts)
+      return deployTestArtifacts(
+        deployer, network, accounts)
     }
     postDeploy = function () {
       return cleanUp(accounts[0])
@@ -84,43 +87,74 @@ module.exports = function(deployer, network, accounts) {
   .then(function (_instance) {
     drpsInstance = _instance
     return deployer.deploy(
-      DRPTokenChanger, drpsInstance.address, drpuInstance.address)
+      DRPTokenChanger, 
+      drpsInstance.address, 
+      drpuInstance.address)
   })
   .then(function () {
     return DRPTokenChanger.deployed()
   })
   .then(function (_instance) {
     drpTokenChangerInstance = _instance
-    return drpsInstance.addOwner(drpTokenChangerInstance.address)
+    return drpsInstance.addOwner(
+      drpTokenChangerInstance.address)
   })
   .then(function () {
-    return drpuInstance.addOwner(drpTokenChangerInstance.address)
+    return drpuInstance.addOwner(
+      drpTokenChangerInstance.address)
   })
   .then(function () {
-    return drpsInstance.registerObserver(drpTokenChangerInstance.address)
+    return drpsInstance.registerObserver(
+      drpTokenChangerInstance.address)
   })
   .then(function () {
-    return drpuInstance.registerObserver(drpTokenChangerInstance.address)
+    return drpuInstance.registerObserver(
+      drpTokenChangerInstance.address)
   })
   .then(function () {
-    return deployer.deploy(DRPUTokenConverter, whitelistInstance.address, drpAddress, drpuInstance.address) 
+    return deployer.deploy(
+      DRPUTokenConverter, 
+      whitelistInstance.address, 
+      drpTokenAddress, 
+      drpuInstance.address) 
   })
   .then(function () {
     return DRPUTokenConverter.deployed()
   })
   .then(function (_instance) {
     drpuTokenConverterInstance = _instance
-    return deployer.deploy(DRPSTokenConverter, whitelistInstance.address, drpAddress, drpsInstance.address) 
+    return deployer.deploy(
+      DRPSTokenConverter, 
+      whitelistInstance.address, 
+      drpTokenAddress, 
+      drpsInstance.address) 
   })
   .then(function () {
     return DRPSTokenConverter.deployed()
   })
   .then(function (_instance) {
     drpsTokenConverterInstance = _instance
-    return drpsInstance.addOwner(drpsTokenConverterInstance.address)
+    return drpsInstance.addOwner(
+      drpsTokenConverterInstance.address)
   })
   .then(function () {
-    return drpuInstance.addOwner(drpuTokenConverterInstance.address)
+    return drpuInstance.addOwner(
+      drpuTokenConverterInstance.address)
+  })
+  .then(function () {
+    return deployer.deploy(
+      DcorpProxy, 
+      drpTokenAddress, 
+      drpsInstance.address, 
+      drpuInstance.address)
+  })
+  .then(function (_instance) {
+    return drpsInstance.addOwner(
+      dcorpProxyInstance.address)
+  })
+  .then(function () {
+    return drpuInstance.addOwner(
+      dcorpProxyInstance.address)
   })
   .then(function () {
     return postDeploy()
