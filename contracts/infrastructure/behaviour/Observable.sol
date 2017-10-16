@@ -56,7 +56,7 @@ contract Observable is IObservable {
      * 
      * @param _observer The account to add as an observer
      */
-    function registerObserver(address _observer) {
+    function registerObserver(address _observer) public {
         require(canRegisterObserver(_observer));
         if (!isObserver(_observer)) {
             observers[_observer] = observerIndex.push(_observer) - 1;
@@ -69,7 +69,7 @@ contract Observable is IObservable {
      * 
      * @param _observer The account to remove as an observer
      */
-    function unregisterObserver(address _observer) {
+    function unregisterObserver(address _observer) public {
         require(canUnregisterObserver(_observer));
         if (isObserver(_observer)) {
             uint indexToDelete = observers[_observer];

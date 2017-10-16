@@ -33,4 +33,20 @@ contract IMultiOwned {
      * @return The address of the owner found at `_index`
      */
     function getOwnerAt(uint _index) constant returns (address);
+
+
+     /**
+     * Adds `_account` as a new owner
+     *
+     * @param _account The account to add as an owner
+     */
+    function addOwner(address _account);
+
+
+    /**
+     * Removes `_account` as an owner
+     *
+     * @param _account The account to remove as an owner
+     */
+    function removeOwner(address _account);
 }
