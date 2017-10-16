@@ -22,7 +22,7 @@ contract TokenChanger is ITokenChanger, IPausable {
     uint private fee; // Percentage lost in transfer
     uint private precision; // Precision 
     bool private paused; // Paused state
-    bool private burn; // Wheter the changer should burn tokens
+    bool private burn; // Whether the changer should burn tokens
 
 
     /**
@@ -43,8 +43,8 @@ contract TokenChanger is ITokenChanger, IPausable {
      * @param _rate The rate used when changing tokens
      * @param _fee The percentage of tokens that is charged
      * @param _decimals The amount of decimals used for _rate and _fee
-     * @param _paused Wheter the token changer starts in the paused state or not
-     * @param _burn Wheter the changer should burn tokens or not
+     * @param _paused Whether the token changer starts in the paused state or not
+     * @param _burn Whether the changer should burn tokens or not
      */
     function TokenChanger(address _tokenLeft, address _tokenRight, uint _rate, uint _fee, uint _decimals, bool _paused, bool _burn) {
         tokenLeft = IManagedToken(_tokenLeft);
@@ -62,7 +62,7 @@ contract TokenChanger is ITokenChanger, IPausable {
      * managed by this token changer
      * 
      * @param _token The address being tested
-     * @return Wheter the '_token' is part of this token changer
+     * @return Whether the '_token' is part of this token changer
      */
     function isToken(address _token) public constant returns (bool) {
         return _token == address(tokenLeft) || _token == address(tokenRight);

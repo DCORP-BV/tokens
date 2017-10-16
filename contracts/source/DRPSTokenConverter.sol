@@ -1,7 +1,7 @@
 pragma solidity ^0.4.15;
 
 import "./token/changer/TokenChanger.sol";
-import "./token/retreiver/ITokenRetreiver.sol";
+import "./token/retriever/ITokenRetriever.sol";
 import "../infrastructure/authentication/AuthenticationManager.sol";
 import "../infrastructure/authentication/whitelist/IWhitelist.sol";
 import "../infrastructure/ownership/TransferableOwnership.sol";
@@ -22,7 +22,7 @@ import "../infrastructure/ownership/TransferableOwnership.sol";
  * #created 11/10/2017
  * #author Frank Bonnet
  */
-contract DRPSTokenConverter is TokenChanger, AuthenticationManager, TransferableOwnership, ITokenRetreiver {
+contract DRPSTokenConverter is TokenChanger, AuthenticationManager, TransferableOwnership, ITokenRetriever {
 
     // Authentication
     IWhitelist private whitelist;
@@ -105,12 +105,12 @@ contract DRPSTokenConverter is TokenChanger, AuthenticationManager, Transferable
     /**
      * Failsafe mechanism
      * 
-     * Allows the owner to retreive tokens from the contract that 
+     * Allows the owner to retrieve tokens from the contract that 
      * might have been send there by accident
      *
      * @param _tokenContract The address of ERC20 compatible token
      */
-    function retreiveTokens(address _tokenContract) public only_owner {
+    function retrieveTokens(address _tokenContract) public only_owner {
         require(getLeftToken() != _tokenContract); // Ensure that the (old) drp token stays locked
 
         IToken tokenInstance = IToken(_tokenContract);

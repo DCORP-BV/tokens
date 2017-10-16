@@ -3,7 +3,7 @@ pragma solidity ^0.4.15;
 /**
  * @title Observable interface
  *
- * Allows observers to register and unregister with the the 
+ * Allows observers to register and unregister with the 
  * implementing smart-contract that is observable
  *
  * #created 09/10/2017

@@ -16,7 +16,7 @@ contract ITokenChanger {
      * managed by this token changer
      * 
      * @param _token The address being tested
-     * @return Wheter the '_token' is part of this token changer
+     * @return Whether the '_token' is part of this token changer
      */
     function isToken(address _token) constant returns (bool);
 

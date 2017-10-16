@@ -5,7 +5,7 @@ import "./IToken.sol";
 /**
  * @title ManagedToken interface
  *
- * Adds the following functionallity to the basic ERC20 token
+ * Adds the following functionality to the basic ERC20 token
  * - Locking
  * - Issuing
  * - Burning 
@@ -32,7 +32,7 @@ contract IManagedToken is IToken {
 
 
     /**
-     * Unlocks the token so that the transferring of value is enabled 
+     * Unlocks the token so that the transfering of value is enabled 
      *
      * @return Whether the unlocking was successful or not
      */

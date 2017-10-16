@@ -14,10 +14,10 @@ contract IAuthenticator {
     /**
      * Authenticate 
      *
-     * Returns wheter `_account` is authenticated or not
+     * Returns whether `_account` is authenticated or not
      *
      * @param _account The account to authenticate
-     * @return wheter `_account` is successfully authenticated
+     * @return whether `_account` is successfully authenticated
      */
     function authenticate(address _account) constant returns (bool);
 }

@@ -7,7 +7,7 @@ import "../../infrastructure/ownership/MultiOwned.sol";
 /**
  * @title ManagedToken
  *
- * Adds the following functionallity to the basic ERC20 token
+ * Adds the following functionality to the basic ERC20 token
  * - Locking
  * - Issuing
  * - Burning 
@@ -84,7 +84,7 @@ contract ManagedToken is IManagedToken, Token, MultiOwned {
     /** 
      * Returns true if the token is locked
      * 
-     * @return Wheter the token is locked
+     * @return Whether the token is locked
      */
     function isLocked() public constant returns (bool) {
         return locked;

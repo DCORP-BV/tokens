@@ -17,7 +17,7 @@ contract Ownership is IOwnership {
 
 
     /**
-     * The publiser is the inital owner
+     * The publisher is the inital owner
      */
     function Ownership() {
         owner = msg.sender;

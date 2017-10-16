@@ -2,7 +2,7 @@ pragma solidity ^0.4.15;
 
 import "./token/changer/TokenChanger.sol";
 import "./token/observer/TokenObserver.sol";
-import "./token/retreiver/ITokenRetreiver.sol";
+import "./token/retriever/ITokenRetriever.sol";
 import "../infrastructure/ownership/TransferableOwnership.sol";
 
 /**
@@ -23,7 +23,7 @@ import "../infrastructure/ownership/TransferableOwnership.sol";
  * #created 06/10/2017
  * #author Frank Bonnet
  */
-contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, ITokenRetreiver {
+contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, ITokenRetriever {
 
 
     /**
@@ -108,12 +108,12 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
     /**
      * Failsafe mechanism
      * 
-     * Allows the owner to retreive tokens from the contract that 
+     * Allows the owner to retrieve tokens from the contract that 
      * might have been send there by accident
      *
      * @param _tokenContract The address of ERC20 compatible token
      */
-    function retreiveTokens(address _tokenContract) public only_owner {
+    function retrieveTokens(address _tokenContract) public only_owner {
         IToken tokenInstance = IToken(_tokenContract);
         uint tokenBalance = tokenInstance.balanceOf(this);
         if (tokenBalance > 0) {

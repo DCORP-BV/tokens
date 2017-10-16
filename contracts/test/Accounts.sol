@@ -14,7 +14,7 @@ contract Accounts {
    /**
     * Accept accounts
     * 
-    * @param _accounts List of accounts to grand access to
+    * @param _accounts List of accounts to grant access to
     */  
     function Accounts(address[] _accounts) {
         accounts = _accounts;
