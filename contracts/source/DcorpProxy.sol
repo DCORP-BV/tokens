@@ -242,7 +242,7 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
         for (uint i = 0; i < getVoteCount(_proposedAddress); i++) {
             address account = p.voteIndex[i];
             Vote storage v = p.votes[account];
-            uint weight = v.token.balanceOf(account);
+            uint weight = v.token.balanceOf(account); // TODO: Get this out to prevent the loop from becoming too big
             if (v.support) {
                 support += weight;
             } else {
