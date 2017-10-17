@@ -1,7 +1,7 @@
 /* global assert, it, artifacts, contract, before */
 
 /**
- * DCORP Proxy integration tests
+ * DCORP Proxy voting integration tests
  *
  * #created 17/10/2017
  * #author Frank Bonnet
@@ -12,20 +12,18 @@ var DRPUToken = artifacts.require('DRPUToken')
 
 // Modules
 var BigNumber = require('bignumber.js')
-var web3Factory = require('./lib/web3_factory.js')
-var web3 = web3Factory.create({testrpc: true})
-
-// Helpers
-var util = require('./lib/util.js')
 
 /**
  * Start a cleanroom
  */
-contract('DcorpProxy', function (accounts) {
+contract('DcorpProxy (Voting)', function (accounts) {
     // Config
     var drpsTokenholders = [{
         account: accounts[8],
         balance: 18000
+    }, {
+        account: accounts[5],
+        balance: 540000
     }, {
         account: accounts[9],
         balance: 400
@@ -35,15 +33,14 @@ contract('DcorpProxy', function (accounts) {
         account: accounts[6],
         balance: 18000
     }, {
+        account: accounts[4],
+        balance: 540000
+    }, {
         account: accounts[7],
-        balance: 600
+        balance: 600 // DRPU holders must have more weight
     }]
 
     var tokenholders = drpsTokenholders.concat(drpuTokenholders)
-    var nonTokenholders = [
-        accounts[4],
-        accounts[5]
-    ]
 
     var rejectedAddress = accounts[1]
     var acceptedAddress = accounts[2]

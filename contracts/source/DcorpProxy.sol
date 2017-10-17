@@ -136,6 +136,17 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
 
 
     /**
+     * Returns wheter a proposal, and with it the proxy itself, is 
+     * already executed or not
+     *
+     * @return Whether the proxy is executed
+     */
+    function isExecuted() public constant returns (bool) {
+        return executed;
+    }
+
+
+    /**
      * Returns the combined total supply of all drp tokens
      *
      * @return The combined total drp supply
@@ -352,6 +363,10 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
         IMultiOwned(drpsToken).addOwner(_proposedAddress);
         IMultiOwned(drpuToken).addOwner(_proposedAddress);
 
+        // Remove self as owner
+        IMultiOwned(drpsToken).removeOwner(this);
+        IMultiOwned(drpuToken).removeOwner(this);
+
         // Transfer Eth (safe because we don't know how much gas is used counting votes)
         uint balanceBefore = _proposedAddress.balance;
         uint balanceToSend = this.balance;
@@ -464,9 +479,11 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
 
 
     /**
-     * Accept eth
+     * Accept eth while not yet executed
      */
-    function () payable {}
+    function () payable {
+        require(!executed);
+    }
 
 
     /**
