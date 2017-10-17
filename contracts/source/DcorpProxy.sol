@@ -228,6 +228,17 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
 
 
     /**
+     * Gets the voting duration, the amount of time voting 
+     * is allowed
+     *
+     * @return Voting duration
+     */
+    function getVotingDuration() public constant returns (uint) {              
+        return VOTING_DURATION;
+    }
+
+
+    /**
      * Gets the number of votes towards a proposal
      *
      * @param _proposedAddress The proposed DCORP address 

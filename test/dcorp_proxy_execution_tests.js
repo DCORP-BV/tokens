@@ -17,6 +17,7 @@ var web3 = web3Factory.create({testrpc: true})
 
 // Helpers
 var util = require('./lib/util.js')
+var time = require('./lib/time.js')
 
 /**
  * Start a cleanroom
@@ -47,6 +48,8 @@ contract('DcorpProxy (Execution)', function (accounts) {
 
     var rejectedAddress = accounts[1]
     var acceptedAddress = accounts[2]
+
+    var etherToSend = web3.utils.toWei(60, 'ether')
 
     var proxyInstance
     var drpsTokenInstance
@@ -97,6 +100,15 @@ contract('DcorpProxy (Execution)', function (accounts) {
             }
 
             return Promise.all(promises)
+        })
+    })
+
+    it('Should not be able to send eth to the proxy before execution', function () {
+        return proxyInstance.sendTransaction({value: etherToSend, from: accounts[0]}).then(function() {
+            return web3.eth.getBalancePromise(proxyInstance.address)
+        })
+        .then(function (_balance) {
+            assert.isTrue(new BigNumber(_balance).eq(etherToSend), 'Balance should be updated')
         })
     })
 
@@ -167,14 +179,16 @@ contract('DcorpProxy (Execution)', function (accounts) {
     })
 
     it('Should not be able to execute a rejected proposal after the end of the voting period', function () {
-        return proxyInstance.VOTING_DURATION.call().then(function (_votingPeriod) {
-            return web3.evm.increaseTimePromise(_votingPeriod.toNumber() + 1 * time.minutes)
+        return proxyInstance.getVotingDuration.call().then(function (_votingPeriod) {
+            return web3.evm.increaseTimePromise(_votingPeriod.toNumber() + 1 * time.days)
         })
         .then(function () {
-            return proxyInstance.sendTransaction({value: 0, from: accounts[0]})
+            return proxyInstance.isExecuted()
         })
-        return proxyInstance.execute(rejectedAddress).catch(
-            (error) => util.errors.throws(error, 'Should not be able to execute the proposal'))
+        .then(function () {
+            return proxyInstance.execute(rejectedAddress)
+        })
+        .catch((error) => util.errors.throws(error, 'Should not be able to execute the proposal'))
         .then(function () {
             return proxyInstance.isExecuted.call()
         })
@@ -210,7 +224,7 @@ contract('DcorpProxy (Execution)', function (accounts) {
         var acceptedAddressBalance
         return web3.eth.getBalancePromise(proxyInstance.address).then(function (_balance) {
             initialProxyBalance = new BigNumber(_balance)
-            return web3.eth.getBalancePromise(proxyInstance.address)
+            return web3.eth.getBalancePromise(acceptedAddress)
         })
         .then(function (_balance) {
             initialAcceptedAddressBalance = new BigNumber(_balance)
@@ -257,7 +271,8 @@ contract('DcorpProxy (Execution)', function (accounts) {
     })
 
     it('Should not be able to send eth to the proxy after execution', function () {
-        return proxyInstance.sendTransaction({value: 1, from: accounts[0]}).catch(
+        var amount = web3.utils.toWei(1, 'ether')
+        return proxyInstance.sendTransaction({value: amount, from: accounts[0]}).catch(
             (error) => util.errors.throws(error, 'Should not be able to send eth'))
         .then(function() {
             return web3.eth.getBalancePromise(proxyInstance.address)
