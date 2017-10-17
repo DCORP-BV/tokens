@@ -1,6 +1,7 @@
 pragma solidity ^0.4.15;
 
 import "./token/IToken.sol";
+import "./token/observer/TokenObserver.sol";
 import "./token/retriever/ITokenRetriever.sol";
 import "../infrastructure/ownership/IMultiOwned.sol";
 import "../infrastructure/ownership/TransferableOwnership.sol";
@@ -8,22 +9,29 @@ import "../infrastructure/ownership/TransferableOwnership.sol";
 /**
  * @title Dcorp Proxy
  *
- * !!UNTESTED!!
+ * !!TESTING!!
  *
  * #created 16/10/2017
  * #author Frank Bonnet
  */
-contract DcorpProxy is TransferableOwnership, ITokenRetriever {
+contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
+
+    struct Balance {
+        uint drps;
+        uint drpu;
+        uint index;
+    }
 
     struct Vote {
         uint datetime;
-        IToken token;
         bool support;
         uint index;
     }
 
     struct Proposal {
         uint createdTimestamp;
+        uint supportingWeight;
+        uint rejectingWeight;
         mapping(address => Vote) votes;
         address[] voteIndex;
         uint index;
@@ -36,12 +44,15 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
     uint constant VOTING_DURATION = 7 days;
     uint constant MIN_QUORUM = 5; // 5%
 
+    // Alocated balances
+    mapping (address => Balance) private allocated;
+    address[] private allocatedIndex;
+
     // Proposals
     mapping(address => Proposal) private proposals;
     address[] private proposalIndex;
 
     // Tokens
-    IToken private drpToken;
     IToken private drpsToken;
     IToken private drpuToken;
 
@@ -52,18 +63,16 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
      * @param _token The address to test against
      */
     modifier only_accepted_token(address _token) {
-        require(_token == address(drpToken) || _token == address(drpsToken) || _token == address(drpuToken));
+        require(_token == address(drpsToken) || _token == address(drpuToken));
         _;
     }
 
 
     /**
-     * Require that sender has more than zero tokens
-     *
-     * @param _token The address to retreive the balance from
+     * Require that sender has more than zero tokens 
      */
-    modifier only_token_holder(address _token) {
-        require(IToken(_token).balanceOf(msg.sender) > 0);
+    modifier only_token_holder() {
+        require(allocated[msg.sender].drps > 0 || allocated[msg.sender].drpu > 0);
         _;
     }
 
@@ -116,12 +125,10 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
     /**
      * Construct the proxy
      *
-     * @param _drpToken The old DRP token
      * @param _drpsToken The new security token
      * @param _drpuToken The new utility token
      */
-    function DcorpProxy(address _drpToken, address _drpsToken, address _drpuToken) {
-        drpToken = IToken(_drpToken);
+    function DcorpProxy(address _drpsToken, address _drpuToken) {
         drpsToken = IToken(_drpsToken);
         drpuToken = IToken(_drpuToken);
         executed = false;
@@ -133,9 +140,8 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
      *
      * @return The combined total drp supply
      */
-    function getTotalTokenSupply() public constant returns (uint) {
+    function getTotalSupply() public constant returns (uint) {
         uint sum = 0; 
-        sum += drpToken.totalSupply();
         sum += drpsToken.totalSupply();
         sum += drpuToken.totalSupply();
         return sum;
@@ -143,9 +149,42 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
 
 
     /**
+     * Returns true if `_owner` has a balance allocated
+     *
+     * @param _owner The account that the balance is allocated for
+     * @return True if there is a balance that belongs to `_owner`
+     */
+    function hasBalance(address _owner) public constant returns (bool) {
+        return allocatedIndex.length > 0 && _owner == allocatedIndex[allocated[_owner].index];
+    }
+
+
+    /** 
+     * Get the allocated drps token balance of `_owner`
+     * 
+     * @param _token The address to test against
+     * @param _owner The address from which the allocated token balance will be retrieved
+     * @return The allocated drps token balance
+     */
+    function balanceOf(address _token, address _owner) public constant returns (uint) {
+        uint balance = 0;
+        if (address(drpsToken) == _token) {
+            balance = allocated[_owner].drps;
+        } 
+        
+        else if (address(drpuToken) == _token) {
+            balance = allocated[_owner].drpu;
+        }
+
+        return balance;
+    }
+
+
+    /**
      * Returns true if `_proposedAddress` is already proposed
      *
-     * @return The address to test against
+     * @param _proposedAddress Address that was proposed
+     * @return Whether `_proposedAddress` is already proposed 
      */
     function isProposed(address _proposedAddress) public constant returns (bool) {
         return proposalIndex.length > 0 && _proposedAddress == proposalIndex[proposals[_proposedAddress].index];
@@ -167,7 +206,7 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
      *
      * @param _proposedAddress The proposed DCORP address 
      */
-    function proposeTransfer(address _proposedAddress) public only_owner {
+    function propose(address _proposedAddress) public only_owner {
         require(!isProposed(_proposedAddress));
 
         // Add proposal
@@ -207,21 +246,52 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
 
 
     /**
+     * Returns true if `_account` supported a proposal
+     *
+     * @param _proposedAddress The proposed DCORP address 
+     * @param _account The key (address) that maps to the vote
+     * @return bool Supported
+     */
+    function getVote(address _proposedAddress, address _account) public constant returns (bool) {
+        return proposals[_proposedAddress].votes[_account].support;
+    }
+
+
+    /**
      * Allows a token holder to vote on a proposal
      *
      * @param _proposedAddress The proposed DCORP address 
-     * @param _token The token used to vote with
      * @param _support True if supported
      */
-    function vote(address _proposedAddress, address _token, bool _support) public only_proposed(_proposedAddress) only_accepted_token(_token) only_token_holder(_token) only_during_voting_period(_proposedAddress) {    
+    function vote(address _proposedAddress, bool _support) public only_proposed(_proposedAddress) only_during_voting_period(_proposedAddress) only_token_holder {    
         Proposal storage p = proposals[_proposedAddress];
-        address account = msg.sender;
+        Balance storage b = allocated[msg.sender];
         
-        if (!hasVoted(_proposedAddress, account)) {
-            p.votes[account] = Vote(
-                now, IToken(_token), _support, p.voteIndex.push(account) - 1);
+        // Register vote
+        if (!hasVoted(_proposedAddress, msg.sender)) {
+            p.votes[msg.sender] = Vote(
+                now, _support, p.voteIndex.push(msg.sender) - 1);
+
+            // Register weight
+            if (_support) {
+                p.supportingWeight += b.drps + b.drpu;
+            } else {
+                p.rejectingWeight += b.drps + b.drpu;
+            }
         } else {
-            Vote storage v = p.votes[account];
+            Vote storage v = p.votes[msg.sender];
+            if (v.support != _support) {
+
+                // Register changed weight
+                if (_support) {
+                    p.supportingWeight += b.drps + b.drpu;
+                    p.rejectingWeight -= b.drps + b.drpu;
+                } else {
+                    p.rejectingWeight += b.drps + b.drpu;
+                    p.supportingWeight -= b.drps + b.drpu;
+                }
+            }
+
             v.support = _support;
             v.datetime = now;
         }
@@ -236,21 +306,7 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
      */
     function getVotingResult(address _proposedAddress) public constant returns (uint, uint) {      
         Proposal storage p = proposals[_proposedAddress];    
-        uint support = 0;
-        uint reject = 0;
-    
-        for (uint i = 0; i < getVoteCount(_proposedAddress); i++) {
-            address account = p.voteIndex[i];
-            Vote storage v = p.votes[account];
-            uint weight = v.token.balanceOf(account); // TODO: Get this out to prevent the loop from becoming too big
-            if (v.support) {
-                support += weight;
-            } else {
-                reject += weight;
-            }
-        }
-
-        return (support, reject);
+        return (p.supportingWeight, p.rejectingWeight);
     }
 
 
@@ -269,7 +325,7 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
             var (support, reject) = getVotingResult(_proposedAddress);
             supported = support > reject;
             if (supported) {
-                supported = support + reject >= getTotalTokenSupply() * MIN_QUORUM / 100;
+                supported = support + reject >= getTotalSupply() * MIN_QUORUM / 100;
             }
         }
         
@@ -308,6 +364,89 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
 
 
     /**
+     * Event handler that initializes the token conversion
+     * 
+     * Called by `_token` when a token amount is received on 
+     * the address of this token changer
+     *
+     * @param _token The token contract that received the transaction
+     * @param _from The account or contract that send the transaction
+     * @param _value The value of tokens that where received
+     */
+    function onTokensReceived(address _token, address _from, uint _value) internal only_accepted_token(_token) {
+        require(_token == msg.sender);
+
+        // Allocate tokens
+        if (!hasBalance(_from)) {
+            allocated[_from] = Balance(
+                0, 0, allocatedIndex.push(_from) - 1);
+        }
+
+        Balance storage b = allocated[_from];
+        if (_token == address(drpsToken)) {
+            b.drps += _value;
+        } else {
+            b.drpu += _value;
+        }
+
+        // Increase weight
+        _adjustWeight(_from, _value, true);
+    }
+
+
+    /**
+     * Withdraw DRPS tokens from the proxy and reduce the 
+     * owners weight accordingly
+     * 
+     * @param _value The amount of DRPS tokens to withdraw
+     */
+    function withdrawDRPS(uint _value) public {
+        Balance storage b = allocated[msg.sender];
+
+        // Require sufficient balance
+        require(b.drps >= _value);
+        require(b.drps - _value <= b.drps);
+
+        // Update balance
+        b.drps -= _value;
+
+        // Reduce weight
+        _adjustWeight(msg.sender, _value, false);
+
+        // Call external
+        if (!drpsToken.transfer(msg.sender, _value)) {
+            revert();
+        }
+    }
+
+
+    /**
+     * Withdraw DRPU tokens from the proxy and reduce the 
+     * owners weight accordingly
+     * 
+     * @param _value The amount of DRPU tokens to withdraw
+     */
+    function withdrawDRPU(uint _value) public {
+        Balance storage b = allocated[msg.sender];
+
+        // Require sufficient balance
+        require(b.drpu >= _value);
+        require(b.drpu - _value <= b.drpu);
+
+        // Update balance
+        b.drpu -= _value;
+
+        // Reduce weight
+        _adjustWeight(msg.sender, _value, false);
+
+        // Call external
+        if (!drpuToken.transfer(msg.sender, _value)) {
+            revert();
+        }
+    }
+
+
+    /**
      * Failsafe mechanism
      * 
      * Allows the owner to retrieve tokens from the contract that 
@@ -328,4 +467,38 @@ contract DcorpProxy is TransferableOwnership, ITokenRetriever {
      * Accept eth
      */
     function () payable {}
+
+
+    /**
+     * Adjust voting weight in ongoing proposals on which `_owner` 
+     * has already voted
+     * 
+     * @param _owner The owner of the weight
+     * @param _value The amount of weight that is adjusted
+     * @param _increase Indicated whethter the weight is increased or decreased
+     */
+    function _adjustWeight(address _owner, uint _value, bool _increase) private {
+        for (uint i = proposalIndex.length; i > 0; i--) {
+            Proposal storage p = proposals[proposalIndex[i - 1]];
+            if (now > p.createdTimestamp + VOTING_DURATION) {
+                break; // Last active proposal
+            }
+
+            if (hasVoted(proposalIndex[i - 1], _owner)) {
+                if (p.votes[_owner].support) {
+                    if (_increase) {
+                        p.supportingWeight += _value;
+                    } else {
+                        p.supportingWeight -= _value;
+                    }
+                } else {
+                    if (_increase) {
+                        p.rejectingWeight += _value;
+                    } else {
+                        p.rejectingWeight -= _value;
+                    }
+                }
+            }
+        }
+    }
 }
