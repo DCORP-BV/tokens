@@ -1,8 +1,8 @@
 pragma solidity ^0.4.15;
 
 import "./token/changer/TokenChanger.sol";
-import "./token/retriever/ITokenRetriever.sol";
-import "../infrastructure/authentication/AuthenticationManager.sol";
+import "./token/retriever/TokenRetriever.sol";
+import "../infrastructure/authentication/IAuthenticationManager.sol";
 import "../infrastructure/authentication/whitelist/IWhitelist.sol";
 import "../infrastructure/ownership/TransferableOwnership.sol";
 
@@ -22,10 +22,11 @@ import "../infrastructure/ownership/TransferableOwnership.sol";
  * #created 11/10/2017
  * #author Frank Bonnet
  */
-contract DRPSTokenConverter is TokenChanger, AuthenticationManager, TransferableOwnership, ITokenRetriever {
+contract DRPSTokenConverter is TokenChanger, IAuthenticationManager, TransferableOwnership, TokenRetriever {
 
     // Authentication
     IWhitelist private whitelist;
+    bool private requireAuthentication;
 
 
     /**
@@ -39,8 +40,36 @@ contract DRPSTokenConverter is TokenChanger, AuthenticationManager, Transferable
      * @param _drps Ref to the DRPS token smart-contract https://www.dcorp.it/drps
      */
     function DRPSTokenConverter(address _whitelist, address _drp, address _drps) 
-        TokenChanger(_drp, _drps, 1 * 10**6, 0, 0, false, false) AuthenticationManager(true) {
+        TokenChanger(_drp, _drps, 1 * 10**6, 0, 0, false, false) {
         whitelist = IWhitelist(_whitelist);
+        requireAuthentication = true;
+    }
+
+
+    /**
+     * Returns true if authentication is enabled and false 
+     * otherwise
+     *
+     * @return Whether the converter is currently authenticating or not
+     */
+    function isAuthenticating() public constant returns (bool) {
+        return requireAuthentication;
+    }
+
+
+    /**
+     * Enable authentication
+     */
+    function enableAuthentication() public only_owner {
+        requireAuthentication = true;
+    }
+
+
+    /**
+     * Disable authentication
+     */
+    function disableAuthentication() public only_owner {
+        requireAuthentication = false;
     }
 
 
@@ -63,22 +92,6 @@ contract DRPSTokenConverter is TokenChanger, AuthenticationManager, Transferable
 
 
     /**
-     * Enable authentication
-     */
-    function enableAuthentication() public only_owner {
-        super.enableAuthentication();
-    }
-
-
-    /**
-     * Disable authentication
-     */
-    function disableAuthentication() public only_owner {
-        super.disableAuthentication();
-    }
-
-
-    /**
      * Request that the (old) drp smart-contract transfers `_value` worth 
      * of (old) drp to the drps token converter to be converted
      * 
@@ -94,7 +107,7 @@ contract DRPSTokenConverter is TokenChanger, AuthenticationManager, Transferable
         address sender = msg.sender;
 
         // Authenticate
-        require(!isAuthenticating() || whitelist.authenticate(sender));
+        require(!requireAuthentication || whitelist.authenticate(sender));
 
         IToken drpToken = IToken(getLeftToken());
         drpToken.transferFrom(sender, this, _value); // Transfer old drp from sender to converter 
@@ -112,12 +125,7 @@ contract DRPSTokenConverter is TokenChanger, AuthenticationManager, Transferable
      */
     function retrieveTokens(address _tokenContract) public only_owner {
         require(getLeftToken() != _tokenContract); // Ensure that the (old) drp token stays locked
-
-        IToken tokenInstance = IToken(_tokenContract);
-        uint tokenBalance = tokenInstance.balanceOf(this);
-        if (tokenBalance > 0) {
-            tokenInstance.transfer(msg.sender, tokenBalance);
-        }
+        super.retrieveTokens(_tokenContract);
     }
 
 

@@ -3,7 +3,7 @@ pragma solidity ^0.4.15;
 import "./token/IToken.sol";
 import "./token/ManagedToken.sol";
 import "./token/observer/ITokenObserver.sol";
-import "./token/retriever/ITokenRetriever.sol";
+import "./token/retriever/TokenRetriever.sol";
 import "../infrastructure/behaviour/Observable.sol";
 
 /**
@@ -17,7 +17,7 @@ import "../infrastructure/behaviour/Observable.sol";
  * #created 01/10/2017
  * #author Frank Bonnet
  */
-contract DRPUToken is ManagedToken, Observable, ITokenRetriever {
+contract DRPUToken is ManagedToken, Observable, TokenRetriever {
 
 
     /**
@@ -94,11 +94,7 @@ contract DRPUToken is ManagedToken, Observable, ITokenRetriever {
      * @param _tokenContract The address of ERC20 compatible token
      */
     function retrieveTokens(address _tokenContract) public only_owner {
-        IToken tokenInstance = IToken(_tokenContract);
-        uint tokenBalance = tokenInstance.balanceOf(this);
-        if (tokenBalance > 0) {
-            tokenInstance.transfer(msg.sender, tokenBalance);
-        }
+        super.retrieveTokens(_tokenContract);
     }
 
 

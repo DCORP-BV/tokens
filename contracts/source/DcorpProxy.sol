@@ -2,19 +2,17 @@ pragma solidity ^0.4.15;
 
 import "./token/IToken.sol";
 import "./token/observer/TokenObserver.sol";
-import "./token/retriever/ITokenRetriever.sol";
+import "./token/retriever/TokenRetriever.sol";
 import "../infrastructure/ownership/IMultiOwned.sol";
 import "../infrastructure/ownership/TransferableOwnership.sol";
 
 /**
  * @title Dcorp Proxy
  *
- * !!TESTING!!
- *
  * #created 16/10/2017
  * #author Frank Bonnet
  */
-contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
+contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
 
     enum Stages {
         Deploying,
@@ -532,11 +530,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
      * @param _tokenContract The address of ERC20 compatible token
      */
     function retrieveTokens(address _tokenContract) public only_owner not_accepted_token(_tokenContract) {
-        IToken tokenInstance = IToken(_tokenContract);
-        uint tokenBalance = tokenInstance.balanceOf(this);
-        if (tokenBalance > 0) {
-            tokenInstance.transfer(msg.sender, tokenBalance);
-        }
+        super.retrieveTokens(_tokenContract);
     }
 
 
