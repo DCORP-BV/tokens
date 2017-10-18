@@ -16,6 +16,12 @@ import "../infrastructure/ownership/TransferableOwnership.sol";
  */
 contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
 
+    enum Stages {
+        Deploying,
+        Deployed,
+        Executed
+    }
+
     struct Balance {
         uint drps;
         uint drpu;
@@ -38,7 +44,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
     }
 
     // State
-    bool private executed;
+    Stages private stage;
 
     // Settings
     uint constant VOTING_DURATION = 7 days;
@@ -56,6 +62,18 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
     IToken private drpsToken;
     IToken private drpuToken;
 
+    // Crowdsale
+    address private drpCrowdsale;
+
+
+    /**
+     * Require that the proxy is in `_stage` 
+     */
+    modifier only_at_stage(Stages _stage) {
+        require(stage == _stage);
+        _;
+    }
+
 
     /**
      * Require `_token` to be one of the drp tokens
@@ -64,6 +82,17 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
      */
     modifier only_accepted_token(address _token) {
         require(_token == address(drpsToken) || _token == address(drpuToken));
+        _;
+    }
+
+
+    /**
+     * Require that `_token` is not one of the drp tokens
+     *
+     * @param _token The address to test against
+     */
+    modifier not_accepted_token(address _token) {
+        require(_token != address(drpsToken) && _token != address(drpuToken));
         _;
     }
 
@@ -127,11 +156,34 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
      *
      * @param _drpsToken The new security token
      * @param _drpuToken The new utility token
+     * @param _drpCrowdsale Proxy accepts and requires ether from the crowdsale
      */
-    function DcorpProxy(address _drpsToken, address _drpuToken) {
+    function DcorpProxy(address _drpsToken, address _drpuToken, address _drpCrowdsale) {
         drpsToken = IToken(_drpsToken);
         drpuToken = IToken(_drpuToken);
-        executed = false;
+        drpCrowdsale = _drpCrowdsale;
+        stage = Stages.Deploying;
+    }
+
+
+    /**
+     * Returns whether the proxy is being deployed
+     *
+     * @return Whether the proxy is in the deploying stage
+     */
+    function isDeploying() public constant returns (bool) {
+        return stage == Stages.Deploying;
+    }
+
+
+    /**
+     * Returns whether the proxy is deployed. The proxy is deployed 
+     * when it receives Ether from the drp crowdsale contract
+     *
+     * @return Whether the proxy is deployed
+     */
+    function isDeployed() public constant returns (bool) {
+        return stage == Stages.Deployed;
     }
 
 
@@ -142,7 +194,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
      * @return Whether the proxy is executed
      */
     function isExecuted() public constant returns (bool) {
-        return executed;
+        return stage == Stages.Executed;
     }
 
 
@@ -217,7 +269,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
      *
      * @param _proposedAddress The proposed DCORP address 
      */
-    function propose(address _proposedAddress) public only_owner {
+    function propose(address _proposedAddress) public only_owner only_at_stage(Stages.Deployed) {
         require(!isProposed(_proposedAddress));
 
         // Add proposal
@@ -285,7 +337,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
      * @param _proposedAddress The proposed DCORP address 
      * @param _support True if supported
      */
-    function vote(address _proposedAddress, bool _support) public only_proposed(_proposedAddress) only_during_voting_period(_proposedAddress) only_token_holder {    
+    function vote(address _proposedAddress, bool _support) public only_at_stage(Stages.Deployed) only_proposed(_proposedAddress) only_during_voting_period(_proposedAddress) only_token_holder {    
         Proposal storage p = proposals[_proposedAddress];
         Balance storage b = allocated[msg.sender];
         
@@ -361,30 +413,29 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
      * Should only be called after the voting period and 
      * when the proposal is supported
      *
-     * @param _proposedAddress The proposed DCORP address 
+     * @param _acceptedAddress The accepted DCORP address 
      * @return bool Success
      */
-    function execute(address _proposedAddress) public only_owner only_proposed(_proposedAddress) only_after_voting_period(_proposedAddress) only_when_supported(_proposedAddress) {
+    function execute(address _acceptedAddress) public only_owner only_at_stage(Stages.Deployed) only_proposed(_acceptedAddress) only_after_voting_period(_acceptedAddress) only_when_supported(_acceptedAddress) {
         
-        // Only once
-        require(!executed);
-        executed = true;
+        // Mark as executed
+        stage = Stages.Executed;
 
-        // Transfer token ownership to DCORP
-        IMultiOwned(drpsToken).addOwner(_proposedAddress);
-        IMultiOwned(drpuToken).addOwner(_proposedAddress);
+        // Add accepted address as token owner
+        IMultiOwned(drpsToken).addOwner(_acceptedAddress);
+        IMultiOwned(drpuToken).addOwner(_acceptedAddress);
 
-        // Remove self as owner
+        // Remove self token as owner
         IMultiOwned(drpsToken).removeOwner(this);
         IMultiOwned(drpuToken).removeOwner(this);
 
         // Transfer Eth (safe because we don't know how much gas is used counting votes)
-        uint balanceBefore = _proposedAddress.balance;
+        uint balanceBefore = _acceptedAddress.balance;
         uint balanceToSend = this.balance;
-        _proposedAddress.transfer(balanceToSend);
+        _acceptedAddress.transfer(balanceToSend);
 
         // Assert balances
-        assert(balanceBefore + balanceToSend == _proposedAddress.balance);
+        assert(balanceBefore + balanceToSend == _acceptedAddress.balance);
         assert(this.balance == 0);
     }
 
@@ -399,7 +450,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
      * @param _from The account or contract that send the transaction
      * @param _value The value of tokens that where received
      */
-    function onTokensReceived(address _token, address _from, uint _value) internal only_accepted_token(_token) {
+    function onTokensReceived(address _token, address _from, uint _value) internal only_at_stage(Stages.Deployed) only_accepted_token(_token) {
         require(_token == msg.sender);
 
         // Allocate tokens
@@ -480,7 +531,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
      *
      * @param _tokenContract The address of ERC20 compatible token
      */
-    function retrieveTokens(address _tokenContract) public only_owner {
+    function retrieveTokens(address _tokenContract) public only_owner not_accepted_token(_tokenContract) {
         IToken tokenInstance = IToken(_tokenContract);
         uint tokenBalance = tokenInstance.balanceOf(this);
         if (tokenBalance > 0) {
@@ -490,10 +541,11 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
 
 
     /**
-     * Accept eth while not yet executed
+     * Accept eth from the crowdsale while deploying
      */
-    function () payable {
-        require(!executed);
+    function () public payable only_at_stage(Stages.Deploying) {
+        require(msg.sender == drpCrowdsale);
+        stage = Stages.Deployed;
     }
 
 

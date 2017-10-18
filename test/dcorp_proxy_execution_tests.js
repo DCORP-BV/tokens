@@ -49,7 +49,8 @@ contract('DcorpProxy (Execution)', function (accounts) {
     var rejectedAddress = accounts[1]
     var acceptedAddress = accounts[2]
 
-    var etherToSend = web3.utils.toWei(60, 'ether')
+    var etherToSend = web3.utils.toWei(25, 'ether')
+    var drpCrowdsaleAddress = accounts[0]
 
     var proxyInstance
     var drpsTokenInstance
@@ -87,7 +88,9 @@ contract('DcorpProxy (Execution)', function (accounts) {
         })
         .then(function (_instance) {
             proxyInstance = _instance
-
+            return proxyInstance.sendTransaction({value: etherToSend, from: drpCrowdsaleAddress})
+        })
+        .then(function () {
             var promises = []
             for (var i = 0; i < drpsTokenholders.length; i++) {
                 promises.push(drpsTokenInstance.transfer(
@@ -100,15 +103,6 @@ contract('DcorpProxy (Execution)', function (accounts) {
             }
 
             return Promise.all(promises)
-        })
-    })
-
-    it('Should not be able to send eth to the proxy before execution', function () {
-        return proxyInstance.sendTransaction({value: etherToSend, from: accounts[0]}).then(function() {
-            return web3.eth.getBalancePromise(proxyInstance.address)
-        })
-        .then(function (_balance) {
-            assert.isTrue(new BigNumber(_balance).eq(etherToSend), 'Balance should be updated')
         })
     })
 

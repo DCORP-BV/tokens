@@ -12,6 +12,12 @@ var DRPUToken = artifacts.require('DRPUToken')
 
 // Modules
 var BigNumber = require('bignumber.js')
+var web3Factory = require('./lib/web3_factory.js')
+var web3 = web3Factory.create({testrpc: true})
+
+// Helpers
+var util = require('./lib/util.js')
+var time = require('./lib/time.js')
 
 /**
  * Start a cleanroom
@@ -44,6 +50,9 @@ contract('DcorpProxy (Voting)', function (accounts) {
 
     var rejectedAddress = accounts[1]
     var acceptedAddress = accounts[2]
+
+    var etherToSend = web3.utils.toWei(25, 'ether')
+    var drpCrowdsaleAddress = accounts[0]
 
     var proxyInstance
     var drpsTokenInstance
@@ -81,7 +90,9 @@ contract('DcorpProxy (Voting)', function (accounts) {
         })
         .then(function (_instance) {
             proxyInstance = _instance
-
+            return proxyInstance.sendTransaction({value: etherToSend, from: drpCrowdsaleAddress})
+        })
+        .then(function () {
             var promises = []
             for (var i = 0; i < drpsTokenholders.length; i++) {
                 promises.push(drpsTokenInstance.transfer(

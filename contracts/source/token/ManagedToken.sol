@@ -132,7 +132,6 @@ contract ManagedToken is IManagedToken, Token, MultiOwned {
         // Notify listeners 
         Transfer(0, this, _value);
         Transfer(this, _to, _value);
-
         return true;
     }
 
@@ -158,7 +157,6 @@ contract ManagedToken is IManagedToken, Token, MultiOwned {
 
         // Notify listeners 
         Transfer(_from, 0, _value);
-
         return true;
     }
 }

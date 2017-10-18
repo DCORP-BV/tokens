@@ -23,6 +23,7 @@ var proxyInstance
 
 // Vars
 var drpTokenAddress = '0x621d78f2ef2fd937bfca696cabaf9a779f59b3ed'
+var drpCrowdsaleAddress = '0xD42433A8a0A1CEB73c8ff4e432463e2ee109039d';
 
 var preDeploy = () => Promise.resolve()
 var postDeploy = () => Promise.resolve()
@@ -55,6 +56,7 @@ module.exports = function(deployer, network, accounts) {
   // Test env settings
   if (isTestingNetwork(network)) {
     preDeploy = function () {
+      drpCrowdsaleAddress = accounts[0]
       return deployTestArtifacts(
         deployer, network, accounts)
     }
@@ -140,7 +142,8 @@ module.exports = function(deployer, network, accounts) {
     return deployer.deploy(
       DcorpProxy, 
       drpsInstance.address, 
-      drpuInstance.address)
+      drpuInstance.address,
+      drpCrowdsaleAddress)
   })
   .then(function () {
     return DcorpProxy.deployed()
