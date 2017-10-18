@@ -324,4 +324,29 @@ contract('DcorpProxy (Voting)', function (accounts) {
             assert.notEqual(initiallySupported, _supported, "Result was not changed")
         })
     })
+
+    it('Should not be able to vote on a proposal after the voting period', function () {
+        var account = tokenholders[0].account;
+        var initialVote
+        return proxyInstance.getVotingDuration.call().then(function (_votingPeriod) {
+            return web3.evm.increaseTimePromise(_votingPeriod.toNumber() + 1 * time.days)
+        })
+        .then(function () {
+            return proxyInstance.isDeployed()
+        })
+        .then(function () {
+            return proxyInstance.getVote.call(acceptedAddress, account)
+        })
+        .then(function (_vote) {
+            initialVote = _vote
+            return proxyInstance.vote(acceptedAddress, !initialVote, {from: account})
+        })
+        .catch((error) => util.errors.throws(error, 'Should not be able to vote after voting period'))
+        .then(function () {
+            return proxyInstance.getVote.call(acceptedAddress, account)
+        })
+        .then(function (_vote) {
+            assert.equal(initialVote, _vote, 'vote should not have been changed')
+        })
+    })
 })

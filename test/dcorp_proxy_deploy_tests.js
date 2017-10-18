@@ -85,6 +85,19 @@ contract('DcorpProxy (Deploy)', function (accounts) {
         })
     })
 
+    it('Should not allow any account other than the drp tokens to call notifyTokensReceived()', function () {
+        var account = drpsTokenholders[0].account
+        var token = drpsTokenInstance.address
+        return proxyInstance.notifyTokensReceived(account, 10, {from: account}).catch(
+            (error) => util.errors.throws(error, 'Accounts other than the drp tokens shouldnot be able to call this function'))
+        .then(function () {
+            return proxyInstance.balanceOf.call(token, account)
+        })
+        .then(function (_balance) {
+            assert.isTrue(new BigNumber(_balance).eq(0), 'No tokens should have been allocated')
+        })
+    })
+
     it('Should not accept drps tokens in the deploying stage', function () {
         return drpsTokenInstance.transfer(proxyInstance.address, drpsTokenholders[0].balance, {from: drpsTokenholders[0].account}).catch(
             (error) => util.errors.throws(error, 'Should not accept drps tokens from in deploying stage'))

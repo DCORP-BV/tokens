@@ -306,7 +306,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, ITokenRetriever {
      *
      * @param _proposedAddress The proposed DCORP address 
      * @param _account The key (address) that maps to the vote
-     * @return bool Voted
+     * @return bool Whether `_account` has voted on the proposal
      */
     function hasVoted(address _proposedAddress, address _account) public constant returns (bool) {
         bool voted = false;
