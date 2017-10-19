@@ -1,0 +1,4 @@
+test/TestTokenChanger.sol test/TestWhitelist.sol
+test/TestDRPSToken*
+test/TestDRPUToken*
+test/TestDRPToken*
