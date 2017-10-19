@@ -108,6 +108,29 @@ contract('DcorpProxy (Voting)', function (accounts) {
         })
   })
 
+  it('Should not be supported if no votes were cast', function() {
+    return proxyInstance.propose(acceptedAddress)
+    .then(function () {
+      return proxyInstance.isSupported.call(acceptedAddress, false)
+    })
+    .then(function (_supported) {
+      assert.isFalse(_supported, 'Proposal should not be supported')
+    })
+  })
+
+  it('Should not be supported if the quorum is not met', function () {
+    // only one vote in favor from 18000 tokens out of a total of 1117000.
+    // This is 1.6%, which is less than the required 5%
+    proxyInstance.vote(
+                  acceptedAddress, true, {from: drpsTokenholders[0].account})
+    .then(function () {
+      return proxyInstance.isSupported.call(acceptedAddress, false)
+    })
+    .then(function (_supported) {
+      assert.isFalse(_supported, 'Proposal should not be supported because quorum is not met')
+    })
+  })
+
   it('Should be able to reject a proposal', function () {
     return proxyInstance.propose(rejectedAddress).then(function () {
       var promises = []
@@ -131,25 +154,24 @@ contract('DcorpProxy (Voting)', function (accounts) {
   })
 
   it('Should be able to accept a proposal', function () {
-    return proxyInstance.propose(acceptedAddress).then(function () {
-      var promises = []
-      for (var i = 0; i < drpsTokenholders.length; i++) {
-        promises.push(proxyInstance.vote(
-                    acceptedAddress, false, {from: drpsTokenholders[i].account}))
-      }
+    var promises = []
+    for (var i = 0; i < drpsTokenholders.length; i++) {
+      promises.push(proxyInstance.vote(
+                  acceptedAddress, false, {from: drpsTokenholders[i].account}))
+    }
 
-      for (var i = 0; i < drpuTokenholders.length; i++) {
-        promises.push(proxyInstance.vote(
-                    acceptedAddress, true, {from: drpuTokenholders[i].account}))
-      }
-      return Promise.all(promises)
+    for (var i = 0; i < drpuTokenholders.length; i++) {
+      promises.push(proxyInstance.vote(
+                  acceptedAddress, true, {from: drpuTokenholders[i].account}))
+    }
+
+    return Promise.all(promises)
+    .then(function () {
+      return proxyInstance.isSupported.call(acceptedAddress, false)
     })
-        .then(function () {
-          return proxyInstance.isSupported.call(acceptedAddress, false)
-        })
-        .then(function (_supported) {
-          assert.isTrue(_supported, 'Proposal should be supported')
-        })
+    .then(function (_supported) {
+      assert.isTrue(_supported, 'Proposal should be supported')
+    })
   })
 
   it('Should allow vote changes', function () {
