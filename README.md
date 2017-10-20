@@ -7,7 +7,19 @@ Report](https://circleci.com/api/v1.1/project/github/DCORP-BV/dcorp/latest/artif
 **Note**: this links to the latest report for the **master branch**, which is
 not necessarily associated with the current branch.
 
-# Welcome to the DCORP Token-changer repository
+# Welcome to the DCORP Tokens and Token-changer repository
+
+This VC platform token changer will allow anyone with a current balance of DRP, 
+to deposit it and in return receive DRPU, or DRPS.
+
+DRPU as indicated by its ‘U’ designation is Dcorp’s utility token for those who are under strict 
+compliance within their country of residence, and does not entitle holders to profit sharing.
+
+DRPS as indicated by its ‘S’ designation, maintaining the primary security functions of the DRP token 
+as outlined within the Dcorp whitepaper. Those who bear DRPS will be entitled to profit sharing in the 
+form of dividends as per a voting process, and is considered the "Security" token of Dcorp.
+
+Also see this [article](http://mailchi.mp/642900e68b1e/dcorp-news)
 
 ## Preparing development environment
 
