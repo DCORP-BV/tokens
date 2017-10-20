@@ -9,6 +9,12 @@ import "../infrastructure/ownership/TransferableOwnership.sol";
 /**
  * @title Dcorp Proxy
  *
+ * Serves as a placeholder for the Dcorp funds, allowing the community the ability to vote on the acceptance of the VC platform,
+ * and the transfer of token ownership. This mechanism is in place to allow the unlocking of the original DRP token, and to allow token 
+ * holders to convert to DRPU or DRPS.
+
+ * This proxy is deployed upon receiving the Ether that is currently held by the DRP Crowdsale contract.
+ *
  * #created 16/10/2017
  * #author Frank Bonnet
  */
@@ -186,13 +192,22 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
 
 
     /**
-     * Returns wheter a proposal, and with it the proxy itself, is 
+     * Returns whether a proposal, and with it the proxy itself, is 
      * already executed or not
      *
      * @return Whether the proxy is executed
      */
     function isExecuted() public constant returns (bool) {
         return stage == Stages.Executed;
+    }
+
+
+     /**
+     * Accept eth from the crowdsale while deploying
+     */
+    function () public payable only_at_stage(Stages.Deploying) {
+        require(msg.sender == drpCrowdsale);
+        stage = Stages.Deployed;
     }
 
 
@@ -535,21 +550,12 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
 
 
     /**
-     * Accept eth from the crowdsale while deploying
-     */
-    function () public payable only_at_stage(Stages.Deploying) {
-        require(msg.sender == drpCrowdsale);
-        stage = Stages.Deployed;
-    }
-
-
-    /**
      * Adjust voting weight in ongoing proposals on which `_owner` 
      * has already voted
      * 
      * @param _owner The owner of the weight
      * @param _value The amount of weight that is adjusted
-     * @param _increase Indicated whethter the weight is increased or decreased
+     * @param _increase Indicated whether the weight is increased or decreased
      */
     function _adjustWeight(address _owner, uint _value, bool _increase) private {
         for (uint i = proposalIndex.length; i > 0; i--) {

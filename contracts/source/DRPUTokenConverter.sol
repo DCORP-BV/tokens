@@ -9,7 +9,7 @@ import "../infrastructure/ownership/TransferableOwnership.sol";
 /**
  * @title DRPU Converter
  *
- * ...
+ * Will allow DRP token holders to convert their DRP Balance into DRPU at the ratio of 1:2, locking all recieved DRP into the converter.
  *
  * DRPU as indicated by its ‘U’ designation is Dcorp’s utility token for those who are under strict 
  * compliance within their country of residence, and does not entitle holders to profit sharing.

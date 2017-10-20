@@ -9,7 +9,7 @@ import "../infrastructure/ownership/TransferableOwnership.sol";
 /**
  * @title DRPS Converter
  *
- * ...
+ * Will allow DRP token holders to convert their DRP Balance into DRPS at the ratio of 1:1, locking all recieved DRP into the converter.
  *
  * DRPS as indicated by its ‘S’ designation, maintaining the primary security functions of the DRP token as 
  * outlined within the Dcorp whitepaper (https://www.dcorp.it/whitepaper).  
