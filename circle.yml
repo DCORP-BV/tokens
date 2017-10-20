@@ -10,10 +10,12 @@ test:
   override:
     - npm run testrpc_boot # boot the testrpc server using docker
     - npm run test
+    - docker stop testrpc
+    - npm run test-unit
   post:
     - npm run linter
     - npm run linter-tests
-    - npm run coverage
+    # - npm run coverage
 
 general:
   artifacts:
