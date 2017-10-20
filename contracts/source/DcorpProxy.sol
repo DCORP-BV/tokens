@@ -540,7 +540,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
     /**
      * Failsafe mechanism
      * 
-     * Allows the owner to retrieve tokens from the contract that 
+     * Allows the owner to retrieve tokens (other than DRPS and DRPU tokens) from the contract that 
      * might have been send there by accident
      *
      * @param _tokenContract The address of ERC20 compatible token
