@@ -108,7 +108,7 @@ contract('DcorpProxy (Execution)', function (accounts) {
                     rejectedAddress, true, {from: drpsTokenholders[i].account}))
       }
 
-      for (var ii = 0; i < drpuTokenholders.length; ii++) {
+      for (var ii = 0; ii < drpuTokenholders.length; ii++) {
         promises.push(proxyInstance.vote(
                     rejectedAddress, false, {from: drpuTokenholders[ii].account}))
       }
