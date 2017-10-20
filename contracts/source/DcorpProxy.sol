@@ -315,7 +315,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
 
 
     /**
-     * Returns true if `_account` has voted on a proposal
+     * Returns true if `_account` has voted on the proposal
      *
      * @param _proposedAddress The proposed DCORP address 
      * @param _account The key (address) that maps to the vote
@@ -333,7 +333,10 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
 
 
     /**
-     * Returns true if `_account` supported a proposal
+     * Returns true if `_account` supported the proposal and returns 
+     * false if `_account` is opposed to the proposal
+     *
+     * Does not check if `_account` had voted, use hasVoted()
      *
      * @param _proposedAddress The proposed DCORP address 
      * @param _account The key (address) that maps to the vote
@@ -365,18 +368,16 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
             } else {
                 p.rejectingWeight += b.drps + b.drpu;
             }
-        } else {
+        } else if (v.support != _support) {
             Vote storage v = p.votes[msg.sender];
-            if (v.support != _support) {
 
-                // Register changed weight
-                if (_support) {
-                    p.supportingWeight += b.drps + b.drpu;
-                    p.rejectingWeight -= b.drps + b.drpu;
-                } else {
-                    p.rejectingWeight += b.drps + b.drpu;
-                    p.supportingWeight -= b.drps + b.drpu;
-                }
+            // Register changed weight
+            if (_support) {
+                p.supportingWeight += b.drps + b.drpu;
+                p.rejectingWeight -= b.drps + b.drpu;
+            } else {
+                p.rejectingWeight += b.drps + b.drpu;
+                p.supportingWeight -= b.drps + b.drpu;
             }
 
             v.support = _support;
