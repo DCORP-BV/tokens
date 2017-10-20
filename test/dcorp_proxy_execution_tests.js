@@ -40,12 +40,6 @@ contract('DcorpProxy (Execution)', function (accounts) {
     balance: 60
   }]
 
-  var tokenholders = drpsTokenholders.concat(drpuTokenholders)
-  var nonTokenholders = [
-    accounts[4],
-    accounts[5]
-  ]
-
   var rejectedAddress = accounts[1]
   var acceptedAddress = accounts[2]
 
@@ -87,36 +81,36 @@ contract('DcorpProxy (Execution)', function (accounts) {
           return DcorpProxy.deployed()
         })
         .then(function (_instance) {
-            proxyInstance = _instance
-            return proxyInstance.sendTransaction({value: etherToSend, from: drpCrowdsaleAddress})
+          proxyInstance = _instance
+          return proxyInstance.sendTransaction({value: etherToSend, from: drpCrowdsaleAddress})
         })
         .then(function () {
-            var promises = []
-            for (var i = 0; i < drpsTokenholders.length; i++) {
-                promises.push(drpsTokenInstance.transfer(
+          var promises = []
+          for (var i = 0; i < drpsTokenholders.length; i++) {
+            promises.push(drpsTokenInstance.transfer(
                     proxyInstance.address, drpsTokenholders[i].balance, {from: drpsTokenholders[i].account}))
           }
 
-          for (var i = 0; i < drpuTokenholders.length; i++) {
+          for (var ii = 0; ii < drpuTokenholders.length; ii++) {
             promises.push(drpuTokenInstance.transfer(
-                    proxyInstance.address, drpuTokenholders[i].balance, {from: drpuTokenholders[i].account}))
+                    proxyInstance.address, drpuTokenholders[ii].balance, {from: drpuTokenholders[ii].account}))
           }
 
           return Promise.all(promises)
         })
   })
 
-    it('Should be able to reject a proposal', function () {
-        return proxyInstance.propose(rejectedAddress).then(function () {
-            var promises = []
-            for (var i = 0; i < drpsTokenholders.length; i++) {
-                promises.push(proxyInstance.vote(
+  it('Should be able to reject a proposal', function () {
+    return proxyInstance.propose(rejectedAddress).then(function () {
+      var promises = []
+      for (var i = 0; i < drpsTokenholders.length; i++) {
+        promises.push(proxyInstance.vote(
                     rejectedAddress, true, {from: drpsTokenholders[i].account}))
       }
 
-      for (var i = 0; i < drpuTokenholders.length; i++) {
+      for (var ii = 0; i < drpuTokenholders.length; ii++) {
         promises.push(proxyInstance.vote(
-                    rejectedAddress, false, {from: drpuTokenholders[i].account}))
+                    rejectedAddress, false, {from: drpuTokenholders[ii].account}))
       }
       return Promise.all(promises)
     })
@@ -136,9 +130,9 @@ contract('DcorpProxy (Execution)', function (accounts) {
                     acceptedAddress, false, {from: drpsTokenholders[i].account}))
       }
 
-      for (var i = 0; i < drpuTokenholders.length; i++) {
+      for (var ii = 0; ii < drpuTokenholders.length; ii++) {
         promises.push(proxyInstance.vote(
-                    acceptedAddress, true, {from: drpuTokenholders[i].account}))
+                    acceptedAddress, true, {from: drpuTokenholders[ii].account}))
       }
       return Promise.all(promises)
     })

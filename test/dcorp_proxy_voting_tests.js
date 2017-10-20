@@ -24,39 +24,39 @@ var time = require('./lib/time.js')
  */
 contract('DcorpProxy (Voting)', function (accounts) {
     // Config
-    var drpsTokenholders = [{
-        account: accounts[8],
-        balance: 18000
-    }, {
-        account: accounts[5],
-        balance: 540000
-    }, {
-        account: accounts[9],
-        balance: 400
-    }]
+  var drpsTokenholders = [{
+    account: accounts[8],
+    balance: 18000
+  }, {
+    account: accounts[5],
+    balance: 540000
+  }, {
+    account: accounts[9],
+    balance: 400
+  }]
 
-    var drpuTokenholders = [{
-        account: accounts[6],
-        balance: 18000
-    }, {
-        account: accounts[4],
-        balance: 540000
-    }, {
-        account: accounts[7],
-        balance: 600 // DRPU holders must have more weight
-    }]
+  var drpuTokenholders = [{
+    account: accounts[6],
+    balance: 18000
+  }, {
+    account: accounts[4],
+    balance: 540000
+  }, {
+    account: accounts[7],
+    balance: 600 // DRPU holders must have more weight
+  }]
 
-    var tokenholders = drpsTokenholders.concat(drpuTokenholders)
+  var tokenholders = drpsTokenholders.concat(drpuTokenholders)
 
-    var rejectedAddress = accounts[1]
-    var acceptedAddress = accounts[2]
+  var rejectedAddress = accounts[1]
+  var acceptedAddress = accounts[2]
 
-    var etherToSend = web3.utils.toWei(25, 'ether')
-    var drpCrowdsaleAddress = accounts[0]
+  var etherToSend = web3.utils.toWei(25, 'ether')
+  var drpCrowdsaleAddress = accounts[0]
 
-    var proxyInstance
-    var drpsTokenInstance
-    var drpuTokenInstance
+  var proxyInstance
+  var drpsTokenInstance
+  var drpuTokenInstance
 
     // Setup test
   before(function () {
@@ -89,26 +89,26 @@ contract('DcorpProxy (Voting)', function (accounts) {
           return DcorpProxy.deployed()
         })
         .then(function (_instance) {
-            proxyInstance = _instance
-            return proxyInstance.sendTransaction({value: etherToSend, from: drpCrowdsaleAddress})
+          proxyInstance = _instance
+          return proxyInstance.sendTransaction({value: etherToSend, from: drpCrowdsaleAddress})
         })
         .then(function () {
-            var promises = []
-            for (var i = 0; i < drpsTokenholders.length; i++) {
-                promises.push(drpsTokenInstance.transfer(
+          var promises = []
+          for (var i = 0; i < drpsTokenholders.length; i++) {
+            promises.push(drpsTokenInstance.transfer(
                     proxyInstance.address, drpsTokenholders[i].balance, {from: drpsTokenholders[i].account}))
           }
 
-          for (var i = 0; i < drpuTokenholders.length; i++) {
+          for (var ii = 0; ii < drpuTokenholders.length; ii++) {
             promises.push(drpuTokenInstance.transfer(
-                    proxyInstance.address, drpuTokenholders[i].balance, {from: drpuTokenholders[i].account}))
+                    proxyInstance.address, drpuTokenholders[ii].balance, {from: drpuTokenholders[ii].account}))
           }
 
           return Promise.all(promises)
         })
   })
 
-  it('Should not be supported if no votes were cast', function() {
+  it('Should not be supported if no votes were cast', function () {
     return proxyInstance.propose(acceptedAddress)
     .then(function () {
       return proxyInstance.isSupported.call(acceptedAddress, false)
@@ -139,9 +139,9 @@ contract('DcorpProxy (Voting)', function (accounts) {
                     rejectedAddress, true, {from: drpsTokenholders[i].account}))
       }
 
-      for (var i = 0; i < drpuTokenholders.length; i++) {
+      for (var ii = 0; ii < drpuTokenholders.length; ii++) {
         promises.push(proxyInstance.vote(
-                    rejectedAddress, false, {from: drpuTokenholders[i].account}))
+                    rejectedAddress, false, {from: drpuTokenholders[ii].account}))
       }
       return Promise.all(promises)
     })
@@ -160,9 +160,9 @@ contract('DcorpProxy (Voting)', function (accounts) {
                   acceptedAddress, false, {from: drpsTokenholders[i].account}))
     }
 
-    for (var i = 0; i < drpuTokenholders.length; i++) {
+    for (var ii = 0; ii < drpuTokenholders.length; ii++) {
       promises.push(proxyInstance.vote(
-                  acceptedAddress, true, {from: drpuTokenholders[i].account}))
+                  acceptedAddress, true, {from: drpuTokenholders[ii].account}))
     }
 
     return Promise.all(promises)
@@ -339,30 +339,30 @@ contract('DcorpProxy (Voting)', function (accounts) {
         .then(function (_supported) {
           assert.notEqual(initiallySupported, _supported, 'Result was not changed')
         })
-    })
+  })
 
-    it('Should not be able to vote on a proposal after the voting period', function () {
-        var account = tokenholders[0].account;
-        var initialVote
-        return proxyInstance.getVotingDuration.call().then(function (_votingPeriod) {
-            return web3.evm.increaseTimePromise(_votingPeriod.toNumber() + 1 * time.days)
+  it('Should not be able to vote on a proposal after the voting period', function () {
+    var account = tokenholders[0].account
+    var initialVote
+    return proxyInstance.getVotingDuration.call().then(function (_votingPeriod) {
+      return web3.evm.increaseTimePromise(_votingPeriod.toNumber() + 1 * time.days)
+    })
+        .then(function () {
+          return proxyInstance.isDeployed()
         })
         .then(function () {
-            return proxyInstance.isDeployed()
-        })
-        .then(function () {
-            return proxyInstance.getVote.call(acceptedAddress, account)
+          return proxyInstance.getVote.call(acceptedAddress, account)
         })
         .then(function (_vote) {
-            initialVote = _vote
-            return proxyInstance.vote(acceptedAddress, !initialVote, {from: account})
+          initialVote = _vote
+          return proxyInstance.vote(acceptedAddress, !initialVote, {from: account})
         })
         .catch((error) => util.errors.throws(error, 'Should not be able to vote after voting period'))
         .then(function () {
-            return proxyInstance.getVote.call(acceptedAddress, account)
+          return proxyInstance.getVote.call(acceptedAddress, account)
         })
         .then(function (_vote) {
-            assert.equal(initialVote, _vote, 'vote should not have been changed')
+          assert.equal(initialVote, _vote, 'vote should not have been changed')
         })
-    })
+  })
 })
