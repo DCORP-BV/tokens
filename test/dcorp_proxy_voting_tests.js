@@ -179,48 +179,48 @@ contract('DcorpProxy (Voting)', function (accounts) {
     var initialVotes
 
     return proxyInstance.isSupported.call(acceptedAddress, false).then(function (_supported) {
-      initiallySupported = _supported
+        initiallySupported = _supported
 
-      var promises = []
-      for (var i = 0; i < tokenholders.length; i++) {
-        promises.push(proxyInstance.getVote(
-                    acceptedAddress, tokenholders[i].account))
-      }
+        var promises = []
+        for (var i = 0; i < tokenholders.length; i++) {
+          promises.push(proxyInstance.getVote(
+                      acceptedAddress, tokenholders[i].account))
+        }
 
-      return Promise.all(promises)
-    })
-        .then(function (_votes) {
-          initialVotes = _votes
+        return Promise.all(promises)
+      })
+      .then(function (_votes) {
+        initialVotes = _votes
 
-            // Change votes
-          var promises = []
-          for (var i = 0; i < tokenholders.length; i++) {
-            promises.push(proxyInstance.vote(
-                    acceptedAddress, !initialVotes[i], {from: tokenholders[i].account}))
-          }
+          // Change votes
+        var promises = []
+        for (var i = 0; i < tokenholders.length; i++) {
+          promises.push(proxyInstance.vote(
+                  acceptedAddress, !initialVotes[i], {from: tokenholders[i].account}))
+        }
 
-          return Promise.all(promises)
-        })
-        .then(function () {
-          var promises = []
-          for (var i = 0; i < tokenholders.length; i++) {
-            promises.push(proxyInstance.getVote(
-                    acceptedAddress, tokenholders[i].account))
-          }
+        return Promise.all(promises)
+      })
+      .then(function () {
+        var promises = []
+        for (var i = 0; i < tokenholders.length; i++) {
+          promises.push(proxyInstance.getVote(
+                  acceptedAddress, tokenholders[i].account))
+        }
 
-          return Promise.all(promises)
-        })
-        .then(function (_votes) {
-            // Assert that votes have changed
-          for (var i = 0; i < tokenholders.length; i++) {
-            assert.notEqual(initialVotes[i], _votes[i], 'Vote was not changed')
-          }
+        return Promise.all(promises)
+      })
+      .then(function (_votes) {
+          // Assert that votes have changed
+        for (var i = 0; i < tokenholders.length; i++) {
+          assert.notEqual(initialVotes[i], _votes[i], 'Vote was not changed')
+        }
 
-          return proxyInstance.isSupported.call(acceptedAddress, false)
-        })
-        .then(function (_supported) {
-          assert.notEqual(initiallySupported, _supported, 'Result was not changed')
-        })
+        return proxyInstance.isSupported.call(acceptedAddress, false)
+      })
+      .then(function (_supported) {
+        assert.notEqual(initiallySupported, _supported, 'Result was not changed')
+      })
   })
 
   it('Withdrawing tokens should affect voting weights', function () {

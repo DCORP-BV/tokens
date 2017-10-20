@@ -368,20 +368,22 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
             } else {
                 p.rejectingWeight += b.drps + b.drpu;
             }
-        } else if (v.support != _support) {
+        } else {
             Vote storage v = p.votes[msg.sender];
+            if (v.support != _support) {
 
-            // Register changed weight
-            if (_support) {
-                p.supportingWeight += b.drps + b.drpu;
-                p.rejectingWeight -= b.drps + b.drpu;
-            } else {
-                p.rejectingWeight += b.drps + b.drpu;
-                p.supportingWeight -= b.drps + b.drpu;
+                // Register changed weight
+                if (_support) {
+                    p.supportingWeight += b.drps + b.drpu;
+                    p.rejectingWeight -= b.drps + b.drpu;
+                } else {
+                    p.rejectingWeight += b.drps + b.drpu;
+                    p.supportingWeight -= b.drps + b.drpu;
+                }
+
+                v.support = _support;
+                v.datetime = now;
             }
-
-            v.support = _support;
-            v.datetime = now;
         }
     }
 
