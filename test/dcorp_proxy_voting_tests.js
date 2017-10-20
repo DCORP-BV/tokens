@@ -179,16 +179,16 @@ contract('DcorpProxy (Voting)', function (accounts) {
     var initialVotes
 
     return proxyInstance.isSupported.call(acceptedAddress, false).then(function (_supported) {
-        initiallySupported = _supported
+      initiallySupported = _supported
 
-        var promises = []
-        for (var i = 0; i < tokenholders.length; i++) {
-          promises.push(proxyInstance.getVote(
+      var promises = []
+      for (var i = 0; i < tokenholders.length; i++) {
+        promises.push(proxyInstance.getVote(
                       acceptedAddress, tokenholders[i].account))
-        }
+      }
 
-        return Promise.all(promises)
-      })
+      return Promise.all(promises)
+    })
       .then(function (_votes) {
         initialVotes = _votes
 
