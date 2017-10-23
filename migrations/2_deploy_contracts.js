@@ -1,5 +1,9 @@
 
+var Web3 = require('web3');
+var web3 = new Web3();
+
 // Contracts
+var MockDCORP = artifacts.require('MockDCORP')
 var DcorpProxy = artifacts.require("DcorpProxy")
 var Whitelist = artifacts.require("Whitelist")
 var DRPUToken = artifacts.require("DRPUToken")
@@ -41,7 +45,13 @@ var deployTestArtifacts = function (deployer, network, accounts) {
   })
   .then(function (_instance) {
     drpTokenAddress = _instance.address
-    return Promise.resolve()
+    return deployer.deploy(MockDCORP, {value: web3.utils.toWei(25.123456, 'ether')})
+  })
+  .then(function () {
+    return MockDCORP.deployed()
+  })
+  .then(function (_instance) {
+    drpCrowdsaleAddress = _instance.address
   })
 }
 
@@ -56,7 +66,6 @@ module.exports = function(deployer, network, accounts) {
   // Test env settings
   if (isTestingNetwork(network)) {
     preDeploy = function () {
-      drpCrowdsaleAddress = accounts[0]
       return deployTestArtifacts(
         deployer, network, accounts)
     }

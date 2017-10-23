@@ -68,6 +68,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
 
     // Crowdsale
     address private drpCrowdsale;
+    uint public drpCrowdsaleRecordedBalance;
 
 
     /**
@@ -166,6 +167,7 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
         drpsToken = IToken(_drpsToken);
         drpuToken = IToken(_drpuToken);
         drpCrowdsale = _drpCrowdsale;
+        drpCrowdsaleRecordedBalance = _drpCrowdsale.balance;
         stage = Stages.Deploying;
     }
 
@@ -202,11 +204,19 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
     }
 
 
-     /**
+    /**
      * Accept eth from the crowdsale while deploying
      */
     function () public payable only_at_stage(Stages.Deploying) {
         require(msg.sender == drpCrowdsale);
+    }
+
+
+    /**
+     * Deploy the proxy
+     */
+    function deploy() only_owner only_at_stage(Stages.Deploying) {
+        require(this.balance >= drpCrowdsaleRecordedBalance);
         stage = Stages.Deployed;
     }
 

@@ -6,6 +6,7 @@
  * #created 17/10/2017
  * #author Frank Bonnet
  */
+var MockDCORP = artifacts.require('MockDCORP')
 var DcorpProxy = artifacts.require('DcorpProxy')
 var DRPSToken = artifacts.require('DRPSToken')
 var DRPUToken = artifacts.require('DRPUToken')
@@ -51,9 +52,7 @@ contract('DcorpProxy (Voting)', function (accounts) {
   var rejectedAddress = accounts[1]
   var acceptedAddress = accounts[2]
 
-  var etherToSend = web3.utils.toWei(25, 'ether')
-  var drpCrowdsaleAddress = accounts[0]
-
+  var crowdsaleInstance
   var proxyInstance
   var drpsTokenInstance
   var drpuTokenInstance
@@ -90,7 +89,21 @@ contract('DcorpProxy (Voting)', function (accounts) {
         })
         .then(function (_instance) {
           proxyInstance = _instance
-          return proxyInstance.sendTransaction({value: etherToSend, from: drpCrowdsaleAddress})
+          return MockDCORP.deployed()
+        })
+        .then(function (_instance) {
+          crowdsaleInstance = _instance
+          return crowdsaleInstance.proposeTransfer(proxyInstance.address)
+        })
+        .then(function () {
+          return web3.eth.getBalancePromise(crowdsaleInstance.address)
+        })
+        .then(function (_balance) {
+          crowdsaleBalance = new BigNumber(_balance)
+          return crowdsaleInstance.executeTransfer()
+        })
+        .then(function () {
+          return proxyInstance.deploy()
         })
         .then(function () {
           var promises = []

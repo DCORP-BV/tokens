@@ -6,6 +6,7 @@
  * #created 17/10/2017
  * #author Frank Bonnet
  */
+var MockDCORP = artifacts.require('MockDCORP')
 var DcorpProxy = artifacts.require('DcorpProxy')
 var DRPSToken = artifacts.require('DRPSToken')
 var DRPUToken = artifacts.require('DRPUToken')
@@ -43,9 +44,7 @@ contract('DcorpProxy (Execution)', function (accounts) {
   var rejectedAddress = accounts[1]
   var acceptedAddress = accounts[2]
 
-  var etherToSend = web3.utils.toWei(25, 'ether')
-  var drpCrowdsaleAddress = accounts[0]
-
+  var crowdsaleInstance
   var proxyInstance
   var drpsTokenInstance
   var drpuTokenInstance
@@ -63,41 +62,53 @@ contract('DcorpProxy (Execution)', function (accounts) {
 
       return Promise.all(promises)
     })
-        .then(function () {
-          return DRPUToken.deployed()
-        })
-        .then(function (_instance) {
-          drpuTokenInstance = _instance
+    .then(function () {
+      return DRPUToken.deployed()
+    })
+    .then(function (_instance) {
+      drpuTokenInstance = _instance
 
-          var promises = []
-          for (var i = 0; i < drpuTokenholders.length; i++) {
-            promises.push(drpuTokenInstance.issue(
-                    drpuTokenholders[i].account, drpuTokenholders[i].balance))
-          }
+      var promises = []
+      for (var i = 0; i < drpuTokenholders.length; i++) {
+        promises.push(drpuTokenInstance.issue(
+                drpuTokenholders[i].account, drpuTokenholders[i].balance))
+      }
 
-          return Promise.all(promises)
-        })
-        .then(function () {
-          return DcorpProxy.deployed()
-        })
-        .then(function (_instance) {
-          proxyInstance = _instance
-          return proxyInstance.sendTransaction({value: etherToSend, from: drpCrowdsaleAddress})
-        })
-        .then(function () {
-          var promises = []
-          for (var i = 0; i < drpsTokenholders.length; i++) {
-            promises.push(drpsTokenInstance.transfer(
-                    proxyInstance.address, drpsTokenholders[i].balance, {from: drpsTokenholders[i].account}))
-          }
+      return Promise.all(promises)
+    })
+    .then(function () {
+      return DcorpProxy.deployed()
+    })
+    .then(function (_instance) {
+      proxyInstance = _instance
+      return MockDCORP.deployed()
+    })
+    .then(function (_instance) {
+      crowdsaleInstance = _instance
+      return crowdsaleInstance.proposeTransfer(proxyInstance.address)
+    })
+    .then(function () {
+      return web3.eth.getBalancePromise(crowdsaleInstance.address)
+    })
+    .then(function (_balance) {
+      crowdsaleBalance = new BigNumber(_balance)
+      return crowdsaleInstance.executeTransfer()
+    })
+    .then(function () {
+      return proxyInstance.deploy()
+    })
+    .then(function () {
+      var promises = []
+      for (var i = 0; i < drpsTokenholders.length; i++) {
+        promises.push(drpsTokenInstance.transfer(
+                proxyInstance.address, drpsTokenholders[i].balance, {from: drpsTokenholders[i].account}))
+      }
 
-          for (var ii = 0; ii < drpuTokenholders.length; ii++) {
-            promises.push(drpuTokenInstance.transfer(
-                    proxyInstance.address, drpuTokenholders[ii].balance, {from: drpuTokenholders[ii].account}))
-          }
-
-          return Promise.all(promises)
-        })
+      for (var ii = 0; ii < drpuTokenholders.length; ii++) {
+        promises.push(drpuTokenInstance.transfer(
+                proxyInstance.address, drpuTokenholders[ii].balance, {from: drpuTokenholders[ii].account}))
+      }
+    })
   })
 
   it('Should be able to reject a proposal', function () {

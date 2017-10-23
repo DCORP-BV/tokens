@@ -6,6 +6,7 @@
  * #created 17/10/2017
  * #author Frank Bonnet
  */
+var MockDCORP = artifacts.require('MockDCORP')
 var DcorpProxy = artifacts.require('DcorpProxy')
 var DRPSToken = artifacts.require('DRPSToken')
 var DRPUToken = artifacts.require('DRPUToken')
@@ -33,12 +34,12 @@ contract('DcorpProxy (Deploy)', function (accounts) {
     balance: 54000
   }]
 
-  var acceptedAddress = accounts[2]
-
-  var etherToSend = web3.utils.toWei(25, 'ether')
-  var drpCrowdsaleAddress = accounts[0]
+  var rejectedAddress = accounts[4]
+  var acceptedAddress = accounts[5]
   var nonDrpCrowdsaleAddress = accounts[1]
+  var crowdsaleBalance
 
+  var crowdsaleInstance
   var proxyInstance
   var drpsTokenInstance
   var drpuTokenInstance
@@ -56,26 +57,37 @@ contract('DcorpProxy (Deploy)', function (accounts) {
 
       return Promise.all(promises)
     })
-        .then(function () {
-          return DRPUToken.deployed()
-        })
-        .then(function (_instance) {
-          drpuTokenInstance = _instance
+    .then(function () {
+      return DRPUToken.deployed()
+    })
+    .then(function (_instance) {
+      drpuTokenInstance = _instance
 
-          var promises = []
-          for (var i = 0; i < drpuTokenholders.length; i++) {
-            promises.push(drpuTokenInstance.issue(
-                    drpuTokenholders[i].account, drpuTokenholders[i].balance))
-          }
+      var promises = []
+      for (var i = 0; i < drpuTokenholders.length; i++) {
+        promises.push(drpuTokenInstance.issue(
+                drpuTokenholders[i].account, drpuTokenholders[i].balance))
+      }
 
-          return Promise.all(promises)
-        })
-        .then(function () {
-          return DcorpProxy.deployed()
-        })
-        .then(function (_instance) {
-          proxyInstance = _instance
-        })
+      return Promise.all(promises)
+    })
+    .then(function () {
+      return DcorpProxy.deployed()
+    })
+    .then(function (_instance) {
+      proxyInstance = _instance
+      return MockDCORP.deployed()
+    })
+    .then(function (_instance) {
+      crowdsaleInstance = _instance
+      return crowdsaleInstance.proposeTransfer(proxyInstance.address)
+    })
+    .then(function () {
+      return web3.eth.getBalancePromise(crowdsaleInstance.address)
+    })
+    .then(function (_balance) {
+      crowdsaleBalance = new BigNumber(_balance)
+    })
   })
 
   it('Should be in the deploying stage initially', function () {
@@ -121,42 +133,56 @@ contract('DcorpProxy (Deploy)', function (accounts) {
 
   it('Should not be able to propose an address in the deploying stage', function () {
     return proxyInstance.propose(acceptedAddress).catch(
-            (error) => util.errors.throws(error, 'Should not accept a proposal deploying stage'))
-        .then(function () {
-          return proxyInstance.getProposalCount.call()
-        })
-        .then(function (_count) {
-          assert.isTrue(new BigNumber(_count).eq(0), 'Should not contain any proposals')
-        })
+        (error) => util.errors.throws(error, 'Should not accept a proposal deploying stage'))
+    .then(function () {
+      return proxyInstance.getProposalCount.call()
+    })
+    .then(function (_count) {
+      assert.isTrue(new BigNumber(_count).eq(0), 'Should not contain any proposals')
+    })
   })
 
   it('Should not accept eth from another address than the crowdsale', function () {
-    return proxyInstance.sendTransaction({value: etherToSend, from: nonDrpCrowdsaleAddress}).catch(
-            (error) => util.errors.throws(error, 'Should not accept ehter from nonDrpCrowdsaleAddress'))
-        .then(function () {
-          return web3.eth.getBalancePromise(proxyInstance.address)
-        })
-        .then(function (_balance) {
-          assert.isTrue(new BigNumber(_balance).eq(0), 'Balance should not be updated')
-          return proxyInstance.isDeploying.call()
-        })
-        .then(function (_isDeploying) {
-          assert.isTrue(_isDeploying, 'Should be in the deploying stage')
-        })
+    return proxyInstance.sendTransaction({value: crowdsaleBalance, from: nonDrpCrowdsaleAddress}).catch(
+        (error) => util.errors.throws(error, 'Should not accept ehter from nonDrpCrowdsaleAddress'))
+    .then(function () {
+      return web3.eth.getBalancePromise(proxyInstance.address)
+    })
+    .then(function (_balance) {
+      assert.isTrue(new BigNumber(_balance).eq(0), 'Balance should not be updated')
+      return proxyInstance.isDeploying.call()
+    })
+    .then(function (_isDeploying) {
+      assert.isTrue(_isDeploying, 'Should be in the deploying stage')
+    })
+  })
+
+  it('Should not be able to deploy before receiving eth', function () {
+    return proxyInstance.deploy().catch(
+      (error) => util.errors.throws(error, 'Should not be able to call the deploy function'))
+    .then(function() {
+      return proxyInstance.isDeployed.call()
+    })
+    .then(function (_isDeployed) {
+        assert.isFalse(_isDeployed, 'Should be in the deploying stage')
+    })
   })
 
   it('Should be able to send eth to the proxy in the deploying stage', function () {
-    return proxyInstance.sendTransaction({value: etherToSend, from: drpCrowdsaleAddress}).then(function () {
+    return crowdsaleInstance.executeTransfer().then(function () {
       return web3.eth.getBalancePromise(proxyInstance.address)
     })
-        .then(function (_balance) {
-          assert.isTrue(new BigNumber(_balance).eq(etherToSend), 'Balance should be updated')
-        })
+    .then(function (_balance) {
+      assert.isTrue(new BigNumber(_balance).eq(crowdsaleBalance), 'Balance should be updated')
+    })
   })
 
-  it('Should be in the deployed stage after receiving eth', function () {
-    return proxyInstance.isDeployed.call().then(function (_isDeployed) {
-      assert.isTrue(_isDeployed, 'Should be in the deploying stage')
+  it('Should be able to deploy after receiving eth', function () {
+    return proxyInstance.deploy().then(function() {
+      return proxyInstance.isDeployed.call()
+    })
+    .then(function (_isDeployed) {
+        assert.isTrue(_isDeployed, 'Should be in the deployed stage')
     })
   })
 
@@ -164,24 +190,27 @@ contract('DcorpProxy (Deploy)', function (accounts) {
     var balanceBefore
     return web3.eth.getBalancePromise(proxyInstance.address).then(function (_balance) {
       balanceBefore = new BigNumber(_balance)
-      return proxyInstance.sendTransaction({value: etherToSend, from: drpCrowdsaleAddress})
+      return crowdsaleInstance.sendTransaction({value: crowdsaleBalance, from: nonDrpCrowdsaleAddress})
     })
-        .catch((error) => util.errors.throws(error, 'Should not accept ehter from when in the deployed stage'))
-        .then(function () {
-          return web3.eth.getBalancePromise(proxyInstance.address)
-        })
-        .then(function (_balance) {
-          assert.isTrue(new BigNumber(_balance).eq(balanceBefore), 'Balance should not be updated')
-        })
+    .then(function () {
+      return crowdsaleInstance.executeTransfer()
+    })
+    .catch((error) => util.errors.throws(error, 'Should not accept ehter from when in the deployed stage'))
+    .then(function () {
+      return web3.eth.getBalancePromise(proxyInstance.address)
+    })
+    .then(function (_balance) {
+      assert.isTrue(new BigNumber(_balance).eq(balanceBefore), 'Balance should not be updated')
+    })
   })
 
   it('Should accept drps tokens in the deployed stage', function () {
     return drpsTokenInstance.transfer(proxyInstance.address, drpsTokenholders[0].balance, {from: drpsTokenholders[0].account}).then(function () {
       return drpsTokenInstance.balanceOf.call(proxyInstance.address)
     })
-        .then(function (_balance) {
-          assert.isTrue(new BigNumber(_balance).eq(drpsTokenholders[0].balance), 'Proxy should have a drps balance')
-        })
+    .then(function (_balance) {
+      assert.isTrue(new BigNumber(_balance).eq(drpsTokenholders[0].balance), 'Proxy should have a drps balance')
+    })
   })
 
   it('Should accept drpu tokens in the deployed stage', function () {
