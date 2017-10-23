@@ -96,10 +96,6 @@ contract('DcorpProxy (Voting)', function (accounts) {
           return crowdsaleInstance.proposeTransfer(proxyInstance.address)
         })
         .then(function () {
-          return web3.eth.getBalancePromise(crowdsaleInstance.address)
-        })
-        .then(function (_balance) {
-          crowdsaleBalance = new BigNumber(_balance)
           return crowdsaleInstance.executeTransfer()
         })
         .then(function () {

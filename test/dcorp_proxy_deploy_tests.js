@@ -34,7 +34,6 @@ contract('DcorpProxy (Deploy)', function (accounts) {
     balance: 54000
   }]
 
-  var rejectedAddress = accounts[4]
   var acceptedAddress = accounts[5]
   var nonDrpCrowdsaleAddress = accounts[1]
   var crowdsaleBalance
@@ -160,11 +159,11 @@ contract('DcorpProxy (Deploy)', function (accounts) {
   it('Should not be able to deploy before receiving eth', function () {
     return proxyInstance.deploy().catch(
       (error) => util.errors.throws(error, 'Should not be able to call the deploy function'))
-    .then(function() {
+    .then(function () {
       return proxyInstance.isDeployed.call()
     })
     .then(function (_isDeployed) {
-        assert.isFalse(_isDeployed, 'Should be in the deploying stage')
+      assert.isFalse(_isDeployed, 'Should be in the deploying stage')
     })
   })
 
@@ -178,11 +177,11 @@ contract('DcorpProxy (Deploy)', function (accounts) {
   })
 
   it('Should be able to deploy after receiving eth', function () {
-    return proxyInstance.deploy().then(function() {
+    return proxyInstance.deploy().then(function () {
       return proxyInstance.isDeployed.call()
     })
     .then(function (_isDeployed) {
-        assert.isTrue(_isDeployed, 'Should be in the deployed stage')
+      assert.isTrue(_isDeployed, 'Should be in the deployed stage')
     })
   })
 
