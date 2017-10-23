@@ -45,7 +45,7 @@ var deployTestArtifacts = function (deployer, network, accounts) {
   })
   .then(function (_instance) {
     drpTokenAddress = _instance.address
-    return deployer.deploy(MockDCORP, {value: web3.utils.toWei(25.123456, 'ether')})
+    return deployer.deploy(MockDCORP, {value: web3.utils.toWei(9.123456, 'ether')})
   })
   .then(function () {
     return MockDCORP.deployed()
