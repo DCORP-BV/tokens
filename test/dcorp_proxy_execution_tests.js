@@ -212,7 +212,7 @@ contract('DcorpProxy (Execution)', function (accounts) {
         })
   })
 
-  it('Should be able to execute an accepted proposal before the end of the voting period', function () {
+  it('Should be able to execute an accepted proposal after the end of the voting period', function () {
     var initialProxyBalance
     var initialAcceptedAddressBalance
     var proxyBalance

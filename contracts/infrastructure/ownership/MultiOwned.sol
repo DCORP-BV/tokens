@@ -89,6 +89,7 @@ contract MultiOwned is IMultiOwned {
             address keyToMove = ownersIndex[ownersIndex.length - 1];
             ownersIndex[indexToDelete] = keyToMove;
             owners[keyToMove] = indexToDelete; 
+            owners[_account] = 0;
             ownersIndex.length--;
         }
     }
