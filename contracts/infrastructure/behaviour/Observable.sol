@@ -76,6 +76,7 @@ contract Observable is IObservable {
             address keyToMove = observerIndex[observerIndex.length - 1];
             observerIndex[indexToDelete] = keyToMove;
             observers[keyToMove] = indexToDelete;
+            observers[_observer] = 0;
             observerIndex.length--;
         }
     }

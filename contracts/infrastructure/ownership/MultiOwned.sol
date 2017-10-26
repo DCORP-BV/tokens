@@ -27,11 +27,11 @@ contract MultiOwned is IMultiOwned {
 
 
     /**
-     * The publisher is the inital owner
+     * The publisher is the initial owner
      */
     function MultiOwned() {
-        ownersIndex.length = 0;
-        owners[msg.sender] = ownersIndex.push(msg.sender) - 1;
+        ownersIndex.push(msg.sender);
+        owners[msg.sender] = 0;
     }
 
 
