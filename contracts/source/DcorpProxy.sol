@@ -51,8 +51,8 @@ contract DcorpProxy is TokenObserver, TransferableOwnership, TokenRetriever {
     Stages private stage;
 
     // Settings
-    uint constant VOTING_DURATION = 7 days;
-    uint constant MIN_QUORUM = 5; // 5%
+    uint private constant VOTING_DURATION = 7 days;
+    uint private constant MIN_QUORUM = 5; // 5%
 
     // Alocated balances
     mapping (address => Balance) private allocated;
