@@ -29,7 +29,8 @@
   "dependencies": {
     "lodash": "^4.17.4",
     "truffle": "^4.0.0-beta.0",
-    "web3": "^1.0.0-beta.18"
+    "web3": "^1.0.0-beta.18",
+    "bignumber.js": "^2.0"
   },
   "devDependencies": {
     "ethereumjs-testrpc": "^4.1.3",

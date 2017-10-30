@@ -41,7 +41,7 @@ contract MultiOwned is IMultiOwned {
      * @param _account The address to test against
      */
     function isOwner(address _account) public constant returns (bool) {
-        return ownersIndex.length > 0 && _account == ownersIndex[owners[_account]];
+        return owners[_account] < ownersIndex.length && _account == ownersIndex[owners[_account]];
     }
 
 
@@ -89,7 +89,6 @@ contract MultiOwned is IMultiOwned {
             address keyToMove = ownersIndex[ownersIndex.length - 1];
             ownersIndex[indexToDelete] = keyToMove;
             owners[keyToMove] = indexToDelete; 
-            owners[_account] = 0;
             ownersIndex.length--;
         }
     }

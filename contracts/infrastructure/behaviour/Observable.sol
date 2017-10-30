@@ -26,7 +26,7 @@ contract Observable is IObservable {
      * @return Whether the account is a registered observer
      */
     function isObserver(address _account) public constant returns (bool) {
-        return observerIndex.length > 0 && _account == observerIndex[observers[_account]];
+        return observers[_account] < observerIndex.length && _account == observerIndex[observers[_account]];
     }
 
 
@@ -76,7 +76,6 @@ contract Observable is IObservable {
             address keyToMove = observerIndex[observerIndex.length - 1];
             observerIndex[indexToDelete] = keyToMove;
             observers[keyToMove] = indexToDelete;
-            observers[_observer] = 0;
             observerIndex.length--;
         }
     }

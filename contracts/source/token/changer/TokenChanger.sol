@@ -101,17 +101,6 @@ contract TokenChanger is ITokenChanger, IPausable {
 
 
     /**
-     * Allow the owner of the token changer to modify the 
-     * fee that is paid in tokens when using the token changer
-     *
-     * @param _fee The percentage of tokens that is charged
-     */
-    function setFee(uint _fee) public {
-        fee = _fee;
-    }
-
-
-    /**
      * Returns the rate that is used to change between tokens
      *
      * @return The rate used when changing tokens
@@ -122,34 +111,12 @@ contract TokenChanger is ITokenChanger, IPausable {
 
 
     /**
-     * Allow the owner of the token changer to modify the 
-     * rate that is used to change between DRPU and DRPS
-     *
-     * @param _rate The rate used when changing tokens
-     */
-    function setRate(uint _rate) public {
-        rate = _rate;
-    }
-
-
-    /**
      * Returns the precision of the rate and fee params
      *
      * @return The amount of decimals used
      */
     function getPrecision() public constant returns (uint) {
         return precision;
-    }
-
-
-    /**
-     * Allow the owner of the token changer to modify the 
-     * precision of the rate and fee params
-     *
-     * @param _decimals The amount of decimals used
-     */
-    function setPrecision(uint _decimals) public {
-        precision = _decimals > 0 ? 10**_decimals : 1;
     }
 
 

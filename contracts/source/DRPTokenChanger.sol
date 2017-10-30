@@ -37,39 +37,6 @@ contract DRPTokenChanger is TokenChanger, TokenObserver, TransferableOwnership, 
 
 
     /**
-     * Allow the owner of the token changer to modify the 
-     * fee that is paid in tokens when using the token changer
-     *
-     * @param _fee The percentage of tokens that is charged
-     */
-    function setFee(uint _fee) public only_owner {
-        super.setFee(_fee);
-    }
-
-
-    /**
-     * Allow the owner of the token changer to modify the 
-     * rate that is used to change between DRPU and DRPS
-     *
-     * @param _rate The rate used when changing tokens
-     */
-    function setRate(uint _rate) public only_owner {
-        super.setRate(_rate);
-    }
-
-
-    /**
-     * Allow the owner of the token changer to modify the 
-     * precision of the rate and fee params
-     *
-     * @param _decimals The amount of decimals used
-     */
-    function setPrecision(uint _decimals) public only_owner {
-        super.setPrecision(_decimals);
-    }
-
-
-    /**
      * Pause the token changer making the contract 
      * revert the transaction instead of converting 
      */
