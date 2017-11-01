@@ -26,8 +26,9 @@ var drpsTokenConverterInstance
 var proxyInstance
 
 // Vars
+var deployingAddress = '0xA96Fd4994168bF4A15aeF72142ac605cF45b6d8e'
 var drpTokenAddress = '0x621d78f2ef2fd937bfca696cabaf9a779f59b3ed'
-var drpCrowdsaleAddress = '0xD42433A8a0A1CEB73c8ff4e432463e2ee109039d';
+var drpCrowdsaleAddress = '0xD42433A8a0A1CEB73c8ff4e432463e2ee109039d'
 
 var preDeploy = () => Promise.resolve()
 var postDeploy = () => Promise.resolve()
@@ -71,7 +72,7 @@ module.exports = function(deployer, network, accounts) {
     }
   } else {
     postDeploy = function () {
-      return cleanUp(accounts[0])
+      return cleanUp(deployingAddress)
     }
   }
 
